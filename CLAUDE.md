@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-An MCP server (stdio transport) that exposes the Tableau Knowledge Graph API (`/api/v1/knowledge`, Tableau Cloud only) as sixteen tools: nine reads, three semantic-context writes, and four Apache Ossie (formerly OSI) tools for porting semantic layers, plus two MCP prompts. Runtime dependencies: the `mcp` SDK and PyYAML (Ossie YAML). Everything else is stdlib (`urllib` for HTTP); keep it that way. Sister project: `../tableau-graphql-mcp` (Metadata API), which this one mirrors in structure and quality bar.
+An MCP server (stdio transport) that exposes the Tableau Knowledge Graph API (`/api/v1/knowledge`, Tableau Cloud only) as seventeen tools: nine reads, three semantic-context writes, four Apache Ossie (formerly OSI) tools for porting semantic layers, and a Business Preferences checker, plus three MCP prompts. Runtime dependencies: the `mcp` SDK and PyYAML (Ossie YAML). Everything else is stdlib (`urllib` for HTTP); keep it that way. Sister project: `../tableau-graphql-mcp` (Metadata API), which this one mirrors in structure and quality bar.
 
 ## Commands
 
@@ -30,6 +30,7 @@ MCP client ⇄ stdio ⇄ `server.py` (FastMCP tools) → `client.py` (auth + HTT
 - `config.py`: `Settings.from_env()`; all config via `TABLEAU_*` env vars. `GRAPH_ID_PATTERN` is the documented `graph_id` pattern.
 - `ossie.py`: Tableau Knowledge <-> Apache Ossie. `load_datasource` (PDS -> logical tables -> fields, plus contexts), `export_datasource` (the mapping; every gap goes in `losses`), `validate_document` (bundled `schemas/ossie-schema-0.2.0.dev0.json` + semantic rules), `normalize` (0.1.1 -> 0.2.0 shape), `plan_import`/`apply_plan`. Tableau ids round-trip in `custom_extensions` vendor `TABLEAU`.
 - `tableau_calc.py`: Tableau formula -> OSSIE_SQL translator. Conservative by design: anything not exact raises `Untranslatable` with a reason, and the formula stays in the `TABLEAU` dialect.
+- `preferences.py`: Business Preferences. `lint` (format, limits, wording; pure, no I/O), `check_fields` (dashboard/sheet/workbook -> workbook -> embedded and published data sources -> visible captions), `RULEBOOK` and `BASELINE` lines. Rules come from the XeoMatrix field report; keep its credit and write rule text in our own words.
 - `ossie_guide.py`: the reference text served by `ossie_guide`, with the spec/converter commits it was read at. Update it (and the bundled schema) when the spec moves.
 
 ## Non-negotiable constraints

@@ -36,6 +36,7 @@ _EXPECTED_TOOLS = {
     "validate_ossie",
     "import_from_ossie",
     "ossie_guide",
+    "check_business_preferences",
 }
 
 _CONTRACT_FILE = Path(__file__).parent / "tool_contract.json"
@@ -54,7 +55,7 @@ def _contract() -> dict[str, dict[str, list[str]]]:
     return out
 
 
-def test_tool_set_is_exactly_the_sixteen():
+def test_tool_set_is_exactly_the_seventeen():
     assert set(_contract().keys()) == _EXPECTED_TOOLS
 
 
@@ -70,7 +71,7 @@ def test_listing_tools_needs_no_credentials(monkeypatch):
     for var in ("TABLEAU_SERVER", "TABLEAU_PAT_NAME", "TABLEAU_PAT_SECRET", "TABLEAU_AUTH_TOKEN"):
         monkeypatch.delenv(var, raising=False)
     monkeypatch.setattr(server, "_client", None)
-    assert len(server.mcp._tool_manager.list_tools()) == 16
+    assert len(server.mcp._tool_manager.list_tools()) == 17
     with pytest.raises(RuntimeError):
         server.client()  # credentials are only needed on the first real call
 

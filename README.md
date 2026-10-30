@@ -29,15 +29,16 @@
 
 ---
 
-**biztory-tableau-knowledge-mcp** turns your site's [Tableau Knowledge Graph API](https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_tableau_knowledge_graph.htm) into sixteen MCP tools, so an AI assistant (Claude, Cursor, VS Code, Cline, and others) can work with the graph in plain language:
+**biztory-tableau-knowledge-mcp** turns your site's [Tableau Knowledge Graph API](https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_tableau_knowledge_graph.htm) into seventeen MCP tools, so an AI assistant (Claude, Cursor, VS Code, Cline, and others) can work with the graph in plain language:
 
 - _"Which fields mean **revenue**, and where do they come from?"_
 - _"If the **Superstore** data source changes, which workbooks and dashboards are affected?"_
 - _"What business context is attached to **Profit**? Add: 'Profit is after returns, in EUR.'"_
 - _"How healthy is our graph, and what are the five highest-impact fixes?"_
 - _"Export **Superstore** to Apache Ossie so we can port it to Snowflake."_
+- _"Write the Business Preferences for the **P&L** dashboard."_
 
-It ships **nine read tools** (semantic search, node lookup, edges, lineage, impact, sources, semantic contexts, graph health, and a connection probe) and **three write tools** that only touch semantic contexts, the business statements that make the graph useful to people and to AI. Four more tools **port semantic layers** through [Apache Ossie](https://ossie.apache.org) (formerly Open Semantic Interchange, OSI), the open standard that Snowflake, dbt, Power BI, Databricks, Tableau Next and others convert to and from.
+It ships **nine read tools** (semantic search, node lookup, edges, lineage, impact, sources, semantic contexts, graph health, and a connection probe) and **three write tools** that only touch semantic contexts, the business statements that make the graph useful to people and to AI. Four more tools **port semantic layers** through [Apache Ossie](https://ossie.apache.org) (formerly Open Semantic Interchange, OSI), the open standard that Snowflake, dbt, Power BI, Databricks, Tableau Next and others convert to and from. And one checks **Business Preferences** files line by line against the fields the agent will actually see.
 
 ### Why it's different
 
@@ -147,6 +148,7 @@ On Windows, if `uvx` isn't found by the GUI app, use its absolute path (e.g. `%U
 | `validate_ossie` | Check any Ossie model (YAML/JSON) against the official schema and the spec's rules. Local only. | `document`, `model_name` |
 | `import_from_ossie` | (write) Plan, then apply, the semantic contexts an Ossie model adds to a data source. | `document`, `target_datasource_id`, `apply` |
 | `ossie_guide` | Reference for Ossie: object model, expressions, Tableau mapping, converters, porting playbook. Local only. | `topic` |
+| `check_business_preferences` | Check a Business Preferences file (format, limits, wording) and every field it names against the dashboard's captions. No text: the rulebook. | `text`, `target`, `product` |
 
 Write tools are annotated `readOnlyHint: false` (update, delete and import also `destructiveHint: true`) so your client can ask before each one. Tableau-managed (`SEMANTIC_CONTEXT_EXTERNAL`) contexts are read-only.
 
@@ -172,9 +174,20 @@ The export validates its own output and returns a `losses` list. Knowledge has n
 
 **Ossie → Tableau Knowledge** (`import_from_ossie`): the Knowledge API can write semantic contexts, so that is what an Ossie model becomes. Descriptions, `ai_context` instructions, synonyms ("Also known as…"), example questions and metric definitions land on the matching nodes, one `ossie:<model>` context per node. Matching uses the ids from a previous export first, then names. On sites that accept only graph-wide context through the API, the same statements become one global `ossie:<model>` context, each prefixed with what it describes (`Superstore / Sales: Also known as: revenue.`); `scope` forces `node` or `global`. The first call returns the plan (create / update / unchanged, plus anything unmatched), and nothing is written until `apply=true`. Statements Tableau already holds are skipped, so re-importing an unedited export writes nothing.
 
-**Two slash commands.** The server ships two MCP prompts that walk through the workflow: *Export a data source to Ossie* and *Import an Ossie model into Tableau Knowledge*. In Claude Code they appear as `/mcp__tableau-knowledge__export_datasource_to_ossie` and `/mcp__tableau-knowledge__import_ossie_into_tableau_knowledge` (with the server name you chose).
+**Slash commands.** The server ships MCP prompts that walk through each workflow: *Export a data source to Ossie*, *Import an Ossie model into Tableau Knowledge*, and *Write Business Preferences*. In Claude Code they appear as `/mcp__tableau-knowledge__export_datasource_to_ossie` and `/mcp__tableau-knowledge__import_ossie_into_tableau_knowledge` (with the server name you chose).
 
 **Onward to other platforms.** Converters exist for Snowflake, dbt, Power BI, Databricks, Tableau Next, Cube, ThoughtSpot, Omni, Sigma and more. None are on PyPI yet, so `ossie_guide` (topic `converters`) gives the exact commands, pinned to a reviewed commit. The server will wrap them as tools once they are published.
+
+## Write Business Preferences that work
+
+A Business Preferences file is the list of `# rule` lines Tableau's agent reads before it answers: one file per dashboard on Tableau Cloud (50 rules, 8,000 characters), one per semantic model on Tableau Next (30,000 characters). It shapes how the agent *plans* an answer, so every line has to be one it can follow. `check_business_preferences` encodes the field-tested lessons from *Business Preferences in Tableau Cloud: What We Learned* (Celia Fryar, XeoMatrix, September 2026):
+
+- **Format slips that Tableau silently ignores**: a space before `#`, no space after it.
+- **Limits** with headroom; no headers, blank lines or duplicates; no contradictions.
+- **Wording that misleads the agent**: thresholds without "use only this value", formatting rules that leak into the query, conversational lines, absences that can be over-read, ambiguous ordering and averages. It also suggests the two baseline rules (keep queries numeric, fail honestly) when they are missing.
+- **Field names, checked live**: give it the dashboard, and every `[Field]` must be a visible caption the agent will see, with "did you mean" suggestions. It also flags workbook problems: duplicate (`Account ID (Account)`), generic (`Amount`) and helper fields.
+
+The `write_business_preferences` prompt runs the whole loop. It gathers the real captions, asks you for terms, thresholds and policies, then drafts and checks until clean, and returns `v1` with the upload-then-publish and testing advice. Call `check_business_preferences` with no text for the full rulebook.
 
 ## How a description becomes a node
 

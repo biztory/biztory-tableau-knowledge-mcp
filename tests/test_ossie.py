@@ -523,7 +523,11 @@ def test_guide_topics():
 
 def test_prompts_are_registered():
     prompts = {p.name: p for p in server.mcp._prompt_manager.list_prompts()}
-    assert set(prompts) == {"export_datasource_to_ossie", "import_ossie_into_tableau_knowledge"}
+    assert set(prompts) == {
+        "export_datasource_to_ossie",
+        "import_ossie_into_tableau_knowledge",
+        "write_business_preferences",
+    }
     assert "export_to_ossie" in server.export_datasource_prompt("Superstore")
     assert "apply=true" in server.import_ossie_prompt("model.ossie.yaml", "Superstore")
 

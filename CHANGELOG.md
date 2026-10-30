@@ -7,6 +7,20 @@ API**: renaming a tool or a required argument is a MAJOR change.
 
 ## [Unreleased]
 
+### Added
+- **Business Preferences**: `check_business_preferences` checks a Tableau Business Preferences file
+  line by line, using field-tested lessons ("Business Preferences in Tableau Cloud: What We
+  Learned", Celia Fryar, XeoMatrix, Sept 2026). It covers the `# ` format (slips Tableau silently
+  ignores), the Cloud (50 rules / 8,000 characters) and Next (30,000) limits with headroom, headers,
+  blank lines, duplicates, contradictions, thresholds without "use only this value", formatting that
+  leaks into queries, conversational lines, over-readable absences, ambiguous ordering and averages,
+  and missing baseline rules. With a dashboard, sheet, workbook or data source as `target`, every
+  `[Field]` is checked against the visible captions in Tableau Knowledge (case, hidden, internal name,
+  "did you mean", table-suffixed duplicates), plus workbook-preparation flags. With no text it
+  returns the rulebook.
+- `write_business_preferences` prompt: gather captions, ask for terms/thresholds/policies, draft,
+  check until clean, deliver v1.
+
 ## [0.2.0] - 2026-10-30
 
 ### Added

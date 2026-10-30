@@ -22,6 +22,7 @@ from . import __version__, ossie
 from .client import TableauClient, TableauError, segment
 from .config import GRAPH_ID_PATTERN, Settings
 from .ossie_guide import GUIDE, TOPICS
+from .preferences import BASELINE, LIMITS, RULEBOOK, check_fields, lint
 
 # stdio transport: logs MUST go to stderr; stdout carries the JSON-RPC protocol.
 # TABLEAU_LOG_LEVEL=DEBUG logs every HTTP call (method + URL; never headers, bodies or secrets).
@@ -592,6 +593,69 @@ def import_ossie_prompt(file_path: str, target_datasource: str = "") -> str:
 3. Call import_from_ossie WITHOUT apply. Show me the plan as a table: node, action
    (create/update/unchanged), how it matched, and the statements. List anything unmatched.
 4. Only after I confirm, call import_from_ossie again with apply=true and report the results."""
+
+
+# ---------------------------------------------------------------- Business Preferences
+
+
+@mcp.tool(title="Check Business Preferences", annotations=_READ)
+def check_business_preferences(
+    text: str = "", target: str | None = None, product: str = "cloud", graph_id: str | None = None
+) -> dict[str, Any]:
+    """Check a Tableau Business Preferences file (the "# rule" lines Tableau's agent reads before it
+    answers) so every line is one the agent will actually follow. Call it with no `text` first to
+    get the rulebook: format, limits, wording rules, workbook preparation and how to test.
+
+    Checks: the "# " line format (a slip makes Tableau silently ignore the line), the limits (Tableau
+    Cloud: 50 rules and 8,000 characters per dashboard; Tableau Next: 30,000 per semantic model),
+    headers, duplicates, contradictions, thresholds without "use only this value", formatting rules
+    that would leak into queries, conversational lines, absences that can be over-read, ambiguous
+    ordering and averages, and missing baseline rules (query formatting, failure handling).
+
+    `target` (a dashboard, sheet, workbook or data source: id or description) also checks every
+    [Field] and "Field" the file names against the captions the agent will see in Tableau Knowledge,
+    with "did you mean" suggestions, and flags workbook problems (duplicate, generic or helper field
+    names). `product` is "cloud" or "next". Returns `ok` (no errors), `issues` by line, and stats.
+    """
+    if not text.strip():
+        return {"rulebook": RULEBOOK, "limits": LIMITS, "baseline_rules": list(BASELINE.values())}
+    out = lint(text, product.strip().lower())
+    if target:
+        found, resolution = _resolve(target, graph_id)
+        fields = check_fields(client(), found, _graph(graph_id), text)
+        out["issues"] += fields.pop("issues")
+        out["fields"] = fields
+        if resolution:
+            out["resolution"] = resolution
+    out["issues"].sort(key=lambda i: (i["line"] is None, i["line"] or 0))
+    out["ok"] = not any(i["severity"] == "error" for i in out["issues"])
+    return out
+
+
+@mcp.prompt(
+    name="write_business_preferences",
+    title="Write Business Preferences",
+    description="Draft a Tableau Business Preferences file for a dashboard (or Tableau Next model), checked line by line.",
+)
+def write_business_preferences_prompt(target: str, product: str = "cloud") -> str:
+    scope = (
+        "semantic model (Tableau Next)" if product.strip().lower() == "next" else "dashboard (Tableau Cloud)"
+    )
+    return f"""Write a Business Preferences file for the {scope} "{target}".
+
+1. Call check_business_preferences with no text and read the rulebook.
+2. Find the target with search_nodes, then collect the exact field captions the agent will see
+   (get_node on its data sources, or export_to_ossie for a published data source).
+3. Ask me, briefly, for: our business terms and which field each maps to, default time periods,
+   thresholds and policies (exact values), and how answers should be formatted.
+4. Draft the file: one rule per line, each starting with "# ", fields written as [Exact Caption],
+   facts and instructions only, within the limits, including the baseline rules for query
+   formatting and failure handling.
+5. Run check_business_preferences with the draft and target="{target}", product="{product}". Fix
+   every error and warning, re-run until `ok` is true, and tell me about workbook_preparation items.
+6. Give me the final file as v1 in a code block with its character count, then remind me: upload it
+   and publish immediately, keep one file per dashboard, and test against an answer key in a fresh
+   conversation in the published view."""
 
 
 def main() -> None:
