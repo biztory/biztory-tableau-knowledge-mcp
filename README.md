@@ -192,7 +192,7 @@ The server speaks MCP over **stdio** to the client and HTTPS to Tableau: it sign
 - **Credentials go only to your Tableau host.** HTTPS required, certificates verified, redirects refused.
 - **No injection through ids.** Node and context ids are encoded as one path segment; `graph_id` is checked against Tableau's pattern before it is sent. Both parsers of untrusted input are fuzzed in CI.
 - **Verifiable releases.** Every GitHub release carries Sigstore signatures and a CycloneDX SBOM, and PyPI uploads use Trusted Publishing.
-- Pin a version in production: `uvx biztory-tableau-knowledge-mcp==0.1.0`.
+- Pin a version in production: `uvx biztory-tableau-knowledge-mcp==0.1.1`.
 
 See [SECURITY.md](SECURITY.md) for the threat model, data handling, disclosure policy and how to verify a release.
 

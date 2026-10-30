@@ -85,7 +85,7 @@ Releases are built once in GitHub Actions from the tagged commit.
   download, replace both version numbers with the release you downloaded:
 
 ```bash
-uvx sigstore verify github --cert-identity https://github.com/biztory/biztory-tableau-knowledge-mcp/.github/workflows/release.yml@refs/tags/v0.1.0 biztory_tableau_knowledge_mcp-0.1.0-py3-none-any.whl
+uvx sigstore verify github --cert-identity https://github.com/biztory/biztory-tableau-knowledge-mcp/.github/workflows/release.yml@refs/tags/v0.1.1 biztory_tableau_knowledge_mcp-0.1.1-py3-none-any.whl
 ```
 
 ## Recommendations
@@ -94,5 +94,5 @@ uvx sigstore verify github --cert-identity https://github.com/biztory/biztory-ta
   user; writes need the Creator role. A Viewer or Explorer PAT makes the server read-only in
   practice. PATs expire after
   15 days of non-use, or after 1 year.
-- Pin a version in production, for example `uvx biztory-tableau-knowledge-mcp==0.1.0`, and review the
+- Pin a version in production, for example `uvx biztory-tableau-knowledge-mcp==0.1.1`, and review the
   tool list before granting an agent access.
