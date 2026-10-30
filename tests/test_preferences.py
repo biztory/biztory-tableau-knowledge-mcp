@@ -3,6 +3,7 @@
 import urllib.parse
 
 import pytest
+
 from biztory_tableau_knowledge_mcp import server
 from biztory_tableau_knowledge_mcp.client import TableauError
 from biztory_tableau_knowledge_mcp.preferences import BASELINE, lint
