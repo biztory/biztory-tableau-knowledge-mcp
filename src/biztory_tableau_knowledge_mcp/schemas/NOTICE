@@ -1,0 +1,4 @@
+ossie-schema-0.2.0.dev0.json is the Apache Ossie (incubating) semantic model JSON Schema,
+copied unmodified from https://github.com/apache/ossie/blob/7a8de20f850dad3934e307a1ac7425b09e9ca89f/core-spec/ossie-schema.json
+Copyright The Apache Software Foundation. Licensed under the Apache License, Version 2.0:
+https://www.apache.org/licenses/LICENSE-2.0

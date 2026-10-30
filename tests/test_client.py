@@ -179,6 +179,7 @@ def test_unreachable_is_clean_error(monkeypatch):
         (409, kerr("no_active_graph"), "primary graph"),
         (403, kerr("tableau_forbidden"), "Creator"),
         (503, kerr("tableau_unavailable"), "Retry"),
+        (403, kerr("node_semantic_context_disabled", "Node-scoped context disabled"), "is_global=true"),
         (503, kerr("internal", "No embedder configured"), "Semantic search is unavailable"),
         (500, kerr("weird_new_code", "boom"), "weird_new_code: boom"),
     ],

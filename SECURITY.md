@@ -30,6 +30,10 @@ What to expect:
   never decide where a write lands. There is no SQL, file or shell access.
 - **Local and stdio-only.** It runs as a child process of your MCP client and opens **no
   inbound network port**.
+- **Untrusted documents are parsed safely.** Ossie YAML/JSON goes through `yaml.safe_load` (no custom
+  tags, no object construction) with a 5 MB cap. `validate_ossie` and `ossie_guide` run locally and
+  never contact Tableau. `import_from_ossie` writes only when called with `apply=true`, and only
+  semantic contexts on the nodes listed in its plan.
 - **Credentials from the environment only.** The PAT or token are never tool
   arguments, never logged and never returned in tool output.
 - **Credentials go only to your Tableau host.**

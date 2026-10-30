@@ -7,6 +7,31 @@ API**: renaming a tool or a required argument is a MAJOR change.
 
 ## [Unreleased]
 
+### Added
+- **Apache Ossie (formerly OSI) support**, for porting semantic layers:
+  - `export_to_ossie`: a published data source as an Ossie 0.2.0.dev0 model. Logical tables ->
+    datasets, fields -> fields, row-level calcs -> fields, aggregate calcs -> metrics (model-scoped
+    when they span tables), default aggregations -> metrics, semantic contexts -> `ai_context`.
+    Tableau formulas are kept in the `TABLEAU` dialect and translated to portable SQL when exact
+    (aggregates, IF/IIF/CASE, null handling, dates, strings, FIXED LODs as window functions).
+    Returns validation and a `losses` report; Tableau ids are stashed under vendor `TABLEAU`.
+  - `import_from_ossie`: plan, then (`apply=true`) write the semantic contexts an Ossie model adds:
+    descriptions, instructions, synonyms, example questions, metric definitions, relationships.
+    Matches by exported ids, then names; skips statements Tableau already holds; one
+    `ossie:<model>` context per node, updated on re-import. On sites that accept only graph-wide
+    context through the API (`node_semantic_context_disabled`, seen live on Tableau Cloud), it falls
+    back to one global context with prefixed statements; `scope` forces `node` or `global`.
+  - `validate_ossie`: the official JSON Schema (bundled) plus the spec's semantic rules; reads
+    0.1.1 documents too.
+  - `ossie_guide`: reference on the spec, the Tableau mapping, the converters (with commands) and
+    a porting playbook.
+  - Two MCP prompts: export a data source to Ossie, import an Ossie model into Tableau Knowledge.
+- A next-step hint for `node_semantic_context_disabled`: use `is_global=true` and name the field.
+- The fuzzer also covers the Tableau formula translator and the Ossie YAML parser/validator.
+
+### Changed
+- New runtime dependency: PyYAML (`safe_load` only), for reading and writing Ossie YAML.
+
 ## [0.1.1] - 2026-10-30
 
 ### Added
