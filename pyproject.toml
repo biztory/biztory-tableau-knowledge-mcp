@@ -41,6 +41,10 @@ dependencies = [
 dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.6", "mypy>=1.11", "hypothesis>=6"]
 
 
+# Not installed by `uv sync --all-extras`. Linux + Python 3.12+ only (atheris ships no other wheels).
+[dependency-groups]
+fuzz = ["atheris>=3.1; sys_platform == 'linux' and python_version >= '3.12'"]
+
 [project.scripts]
 biztory-tableau-knowledge-mcp = "biztory_tableau_knowledge_mcp.server:main"
 

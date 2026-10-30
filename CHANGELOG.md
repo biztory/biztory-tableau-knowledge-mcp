@@ -22,5 +22,7 @@ API**: renaming a tool or a required argument is a MAJOR change.
   then reported with a hint to make fewer calls.
 - PAT sign-in with token expiry tracking and one re-sign-in on 401; HTTPS enforced, redirects
   refused, ids encoded as a single path segment, `graph_id` pattern-checked.
+- Error bodies are parsed defensively (malformed 422 entries, oversized messages), and both
+  untrusted-input parsers are fuzzed with atheris in CI.
 - Tool contract snapshot, MCP tool annotations, offline test suite against a fake Knowledge API,
   opt-in live tests (read-only by default).

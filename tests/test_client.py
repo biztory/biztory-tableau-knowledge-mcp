@@ -362,3 +362,25 @@ def test_persistent_429_gives_up_with_a_hint(monkeypatch):
     with pytest.raises(TableauError, match="already retried") as e:
         c.knowledge("GET", "/graphs")
     assert len(sleeps) == 3 and "HTTP 429" in str(e.value)
+
+
+def test_malformed_422_entries_never_crash():
+    """The error body is untrusted network input (found while writing the fuzz harness)."""
+    body = {
+        "detail": [
+            {"loc": 7, "msg": "x"},
+            {"loc": None},
+            "junk",
+            {"loc": ["body", "limit"], "msg": "too big"},
+        ]
+    }
+    msg, _ = describe_http_error(400, "Bad", json.dumps(body).encode())
+    assert msg.startswith("HTTP 400 invalid request: ")  # the real status, not a hard-coded 422
+    assert "limit: too big" in msg
+
+
+def test_huge_error_message_is_truncated():
+    msg, ecode = describe_http_error(
+        500, "err", json.dumps({"code": "c" * 1000, "message": "m" * 10_000}).encode()
+    )
+    assert len(msg) < 700 and len(ecode) == 80

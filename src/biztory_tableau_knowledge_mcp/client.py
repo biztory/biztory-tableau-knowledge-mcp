@@ -113,6 +113,17 @@ def segment(value: str) -> str:
     return urllib.parse.quote(value, safe="")
 
 
+# The error body comes from the network: keep what reaches the model short.
+_MAX_MESSAGE = 500
+
+
+def _invalid_field(d: dict[str, Any]) -> str:
+    """One 422 entry -> "field.path: message". ``loc`` is ["body", "field", ...] when well-formed."""
+    loc = d.get("loc")
+    path = ".".join(str(p) for p in loc[1:]) if isinstance(loc, list) else ""
+    return f"{path}: {d.get('msg', '')}"
+
+
 def describe_http_error(code: int, reason: str, body: bytes) -> tuple[str, str]:
     """Build a model-readable message from a Knowledge API error response -> (message, error code)."""
     try:
@@ -122,14 +133,10 @@ def describe_http_error(code: int, reason: str, body: bytes) -> tuple[str, str]:
     if not isinstance(err, dict):
         err = {}
     if isinstance(err.get("detail"), list):  # 422: one entry per invalid field
-        fields = "; ".join(
-            ".".join(str(p) for p in (d.get("loc") or [])[1:]) + ": " + str(d.get("msg", ""))
-            for d in err["detail"]
-            if isinstance(d, dict)
-        )
-        return f"HTTP 422 invalid request: {fields}", "unprocessable_content"
-    ecode = str(err.get("code") or "")
-    msg = str(err.get("message") or err.get("detail") or "").strip()
+        fields = "; ".join(_invalid_field(d) for d in err["detail"] if isinstance(d, dict))
+        return f"HTTP {code} invalid request: {fields[:_MAX_MESSAGE]}", "unprocessable_content"
+    ecode = str(err.get("code") or "")[:80]
+    msg = str(err.get("message") or err.get("detail") or "").strip()[:_MAX_MESSAGE]
     if not msg:
         msg = body.decode("utf-8", "replace")[:300].strip() if body else reason
     out = f"HTTP {code}" + (f" {ecode}" if ecode else "") + f": {msg}"
