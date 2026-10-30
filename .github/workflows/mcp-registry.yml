@@ -1,0 +1,29 @@
+name: MCP Registry
+
+# Lists the release on the official MCP registry (registry.modelcontextprotocol.io).
+# GitHub OIDC proves this repo belongs to the biztory org, which grants io.github.biztory/*
+# (an interactive login would need an org Owner). Called by release.yml after the PyPI
+# publish; run it manually to (re)list the version in server.json.
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write   # OIDC login to the MCP registry
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - name: Install mcp-publisher v1.7.9 (checksum-pinned)
+        run: |
+          curl -fsSL -o mcp-publisher.tar.gz https://github.com/modelcontextprotocol/registry/releases/download/v1.7.9/mcp-publisher_linux_amd64.tar.gz
+          echo "ab128162b0616090b47cf245afe0a23f3ef08936fdce19074f5ba0a4469281ac  mcp-publisher.tar.gz" | sha256sum --check
+          tar xzf mcp-publisher.tar.gz mcp-publisher
+      - run: ./mcp-publisher login github-oidc
+      - run: ./mcp-publisher publish server.json
