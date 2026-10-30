@@ -32,6 +32,7 @@ from .tableau_calc import Untranslatable, is_aggregate, ref_name, referenced_nam
 OSSIE_VERSION = "0.2.0.dev0"
 VENDOR = "TABLEAU"
 MAX_DOCUMENT_BYTES = 5_000_000
+SCOPES = ("auto", "node", "global")
 _STATEMENT_MIN, _STATEMENT_MAX = 5, 1000
 
 DATATYPES = {
@@ -798,7 +799,10 @@ def plan_import(
     target_datasource_id: str | None,
     model_name: str | None,
     include_definitions: bool,
+    scope: str = "auto",
 ) -> dict[str, Any]:
+    if scope not in SCOPES:
+        raise TableauError(f"scope must be one of {', '.join(SCOPES)}.")
     doc, notes = normalize(parse_document(text), model_name)
     validation = validate_document(doc)
     if not validation["valid"]:
@@ -936,13 +940,10 @@ def plan_import(
             _statements_for(r, "relationship", mname, include_definitions),
         )
 
-    existing = {
-        ctx.get("target_node_id"): ctx
-        for ctx in data["contexts"]
-        if ctx.get("name") == context_name
-        and ctx.get("type") == "SEMANTIC_CONTEXT"
-        and ctx.get("target_node_id")
-    }
+    mine = [
+        c for c in data["contexts"] if c.get("name") == context_name and c.get("type") == "SEMANTIC_CONTEXT"
+    ]
+    existing = {ctx.get("target_node_id"): ctx for ctx in mine if ctx.get("target_node_id")}
     operations = []
     for op in ops.values():
         prior = existing.get(op["node_id"])
@@ -952,49 +953,93 @@ def plan_import(
             current = [s.get("statement") for s in (prior.get("properties") or {}).get("statements") or []]
             action = "unchanged" if current == op["statements"] else "update"
             op["context_id"] = prior.get("id")
-        operations.append({"action": action, "context_name": context_name, **op})
+        operations.append({"action": action, "context_name": context_name, "scope": "node", **op})
+
+    # The same statements as ONE graph-wide context, each prefixed with what it describes. Some
+    # sites only accept global context through the API (node_semantic_context_disabled).
+    source = str(pds.get("name"))
+    prefixed = _chunk(
+        f"{source}{'' if o['node_id'] == pds['id'] else ' / ' + str(o['node_name'])}: {s}"
+        for o in operations
+        for s in o["statements"]
+    )
+    global_op: dict[str, Any] | None = None
+    if prefixed:
+        prior = next((c for c in mine if (c.get("properties") or {}).get("is_global")), None)
+        current = [
+            s.get("statement") for s in ((prior or {}).get("properties") or {}).get("statements") or []
+        ]
+        global_op = {
+            "action": "create" if prior is None else ("unchanged" if current == prefixed else "update"),
+            "context_name": context_name,
+            "scope": "global",
+            "node_id": None,
+            "node_name": "(whole graph)",
+            "elements": [e for o in operations for e in o["elements"]],
+            "statements": prefixed,
+            **({"context_id": prior.get("id")} if prior else {}),
+        }
+    if scope == "global":
+        operations = [global_op] if global_op else []
+    elif scope == "auto" and global_op and any(o["action"] != "unchanged" for o in operations):
+        notes.append(
+            "If this site accepts only graph-wide context (node_semantic_context_disabled), apply writes "
+            "`global_fallback` instead: one global context with every statement prefixed by what it describes."
+        )
     summary = {a: sum(1 for o in operations if o["action"] == a) for a in ("create", "update", "unchanged")}
     return {
         "applied": False,
         "valid": True,
         "model": mname,
+        "scope": scope,
         "target_datasource": {"id": pds["id"], "name": pds.get("name")},
         "summary": {**summary, "unmatched": len(unmatched), "statements_already_in_tableau": already_known},
         "operations": operations,
+        **({"global_fallback": global_op} if scope == "auto" and global_op else {}),
         "unmatched": unmatched,
         "validation": validation,
         "notes": notes,
     }
 
 
+def _write(c: TableauClient, op: dict[str, Any], graph: dict[str, Any]) -> dict[str, Any]:
+    """Execute one planned operation. Raises TableauError."""
+    if op["action"] == "unchanged":
+        return {"node_id": op["node_id"], "result": "unchanged", "context_id": op.get("context_id")}
+    body: dict[str, Any] = {"statements": [{"statement": s} for s in op["statements"]]}
+    if op["action"] == "update":
+        c.knowledge("PATCH", f"/semantic-contexts/{segment(op['context_id'])}", query=graph, body=body)
+        return {"node_id": op["node_id"], "result": "updated", "context_id": op["context_id"]}
+    target = {"is_global": True} if op["scope"] == "global" else {"target_node_id": op["node_id"]}
+    created = c.knowledge(
+        "POST", "/semantic-contexts", query=graph, body={**body, **target, "name": op["context_name"]}
+    )
+    return {"node_id": op["node_id"], "result": "created", "context_id": (created or {}).get("id")}
+
+
 def apply_plan(c: TableauClient, plan: dict[str, Any], graph: dict[str, Any]) -> dict[str, Any]:
-    results = []
+    results: list[dict[str, Any]] = []
+    fallback = None
     for op in plan["operations"]:
-        if op["action"] == "unchanged":
-            results.append(
-                {"node_id": op["node_id"], "result": "unchanged", "context_id": op.get("context_id")}
-            )
-            continue
-        body: dict[str, Any] = {"statements": [{"statement": s} for s in op["statements"]]}
         try:
-            if op["action"] == "update":
-                c.knowledge(
-                    "PATCH", f"/semantic-contexts/{segment(op['context_id'])}", query=graph, body=body
-                )
-                results.append(
-                    {"node_id": op["node_id"], "result": "updated", "context_id": op["context_id"]}
-                )
-            else:
-                created = c.knowledge(
-                    "POST", "/semantic-contexts", query=graph,
-                    body={**body, "target_node_id": op["node_id"], "name": op["context_name"]},
-                )  # fmt: skip
-                results.append(
-                    {"node_id": op["node_id"], "result": "created", "context_id": (created or {}).get("id")}
-                )
-        except TableauError as e:  # keep going: report each failure next to its node
-            results.append({"node_id": op["node_id"], "result": "failed", "error": str(e)})
+            results.append(_write(c, op, graph))
+        except TableauError as e:
+            if e.code == "node_semantic_context_disabled" and plan.get("global_fallback"):
+                fallback = plan["global_fallback"]
+                break
+            results.append({"node_id": op["node_id"], "result": "failed", "error": str(e)})  # keep going
+    if fallback is not None:
+        try:
+            results.append(_write(c, fallback, graph))
+        except TableauError as e:
+            results.append({"node_id": None, "result": "failed", "error": str(e)})
     done = {
         k: sum(1 for r in results if r["result"] == k) for k in ("created", "updated", "unchanged", "failed")
     }
-    return {**plan, "applied": True, "results": results, "applied_summary": done}
+    out = {**plan, "applied": True, "results": results, "applied_summary": done}
+    if fallback is not None:
+        out["fallback_to_global"] = (
+            "This site accepts only graph-wide context through the API, so the statements were written as "
+            f"one global context {fallback['context_name']!r}, each prefixed with what it describes."
+        )
+    return out

@@ -15,6 +15,8 @@ import uuid
 
 import pytest
 
+from biztory_tableau_knowledge_mcp.client import TableauError
+
 pytestmark = [
     pytest.mark.live,
     pytest.mark.skipif(
@@ -72,15 +74,18 @@ def test_write_round_trip_cleans_up_after_itself(srv):
     if not sources:
         pytest.skip("graph has no sources")
     tag = f"biztory-tableau-knowledge-mcp live test {uuid.uuid4().hex[:8]}"
-    created = srv.create_semantic_context(
-        [f"{tag}: temporary statement, safe to delete."], target_node_id=sources[0]["id"], name=tag
-    )
+    statement = [f"{tag}: temporary statement, safe to delete."]
+    try:
+        created = srv.create_semantic_context(statement, target_node_id=sources[0]["id"], name=tag)
+    except TableauError as e:  # some sites accept only graph-wide context through the API
+        if e.code != "node_semantic_context_disabled":
+            raise
+        created = srv.create_semantic_context(statement, is_global=True, name=tag)
     ctx_id = created["id"]
     try:
-        assert created["target_node_id"] == sources[0]["id"]
         updated = srv.update_semantic_context(ctx_id, statements=[f"{tag}: updated statement."])
         assert updated["properties"]["statements"][0]["statement"].endswith("updated statement.")
     finally:
         srv.delete_semantic_context(ctx_id)
-    remaining = srv.search_semantic_contexts(node=sources[0]["id"])["contexts"]
+    remaining = srv.search_semantic_contexts()["contexts"]
     assert ctx_id not in {c["id"] for c in remaining}

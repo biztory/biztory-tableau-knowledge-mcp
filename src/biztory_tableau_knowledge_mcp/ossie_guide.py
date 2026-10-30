@@ -101,7 +101,9 @@ Allowed on the model, datasets, fields, metrics and relationships. Either a stri
 {instructions: str, synonyms: [str], examples: [str] (sample questions)} with extra keys allowed.
 import_from_ossie turns it into Tableau Knowledge semantic-context statements: the description,
 the instructions, "Also known as: ..." for synonyms, "Example question: ..." for examples, the
-metric definition, and "Relates to ..." for relationships. Converters differ in what they keep:
+metric definition, and "Relates to ..." for relationships. Sites that accept only graph-wide
+context through the API (error node_semantic_context_disabled) get one global ossie:<model>
+context instead, each statement prefixed "<data source> / <field>: ...". Converters differ in what they keep:
 Snowflake drops relationship ai_context; Wisdom drops synonyms and field/metric ai_context;
 Power BI stores the whole object in an annotation. There are no verified queries yet.""",
     "extensions": """\

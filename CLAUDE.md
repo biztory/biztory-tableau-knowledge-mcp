@@ -40,6 +40,7 @@ MCP client ⇄ stdio ⇄ `server.py` (FastMCP tools) → `client.py` (auth + HTT
 - **Secrets from env only**: never tool arguments, never logged, never in output or errors.
 - **Keep the tool surface small.** Improve a docstring before adding a tool.
 - **The tool contract is pinned.** `tests/test_tool_contract.py` snapshots names + args in `tests/tool_contract.json`; regenerate on purpose (command in its docstring), note it in `CHANGELOG.md`, MAJOR bump for renames/removals.
+- **Node-scoped writes may be refused.** Tableau Cloud can answer `node_semantic_context_disabled` (only global context accepted through the API). Import handles it with `global_fallback`; any new write path must too.
 - **Ossie output must validate.** `export_datasource` validates its own model; a mapping change that produces an invalid model is a bug. Never drop information silently: put it in `losses` or the `TABLEAU` stash.
 - **Bound big responses** and say so (e.g. `graph_health` limit 20 with full totals). Never truncate silently.
 - Behavior changes need a test and a `CHANGELOG.md` entry under `[Unreleased]`.

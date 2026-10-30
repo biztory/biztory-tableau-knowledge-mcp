@@ -368,7 +368,9 @@ def create_semantic_context(
 
     Set exactly ONE of: `target_node_id` (an exact node id from search_nodes/get_node; the
     context then DESCRIBES that node) or `is_global=true` (applies to the whole graph).
-    CONNECTION, SITE, SCHEMA and semantic-context nodes can't be targets. `name` is optional
+    CONNECTION, SITE, SCHEMA and semantic-context nodes can't be targets. Some sites accept only
+    graph-wide context through the API (error node_semantic_context_disabled): then use
+    is_global=true and name the field or data source in each statement. `name` is optional
     (derived when omitted). Needs the Creator role. Returns the new context, with its id.
     """
     target = (target_node_id or "").strip() or None
@@ -510,6 +512,7 @@ def import_from_ossie(
     model_name: str | None = None,
     apply: bool = False,
     include_definitions: bool = True,
+    scope: str = "auto",
     graph_id: str | None = None,
 ) -> dict[str, Any]:
     """Bring the business meaning of an Apache Ossie (formerly OSI) model into Tableau Knowledge
@@ -522,12 +525,18 @@ def import_from_ossie(
     synonyms ("Also known as: ..."), example questions, metric definition (`include_definitions`)
     and relationships. Re-importing updates those contexts instead of duplicating them.
 
+    `scope`: "auto" (default) attaches contexts to nodes and, on sites that accept only graph-wide
+    context through the API (error node_semantic_context_disabled), writes the plan's
+    `global_fallback` instead: one global `ossie:<model>` context whose statements are prefixed
+    with what they describe. "node" never falls back; "global" plans the global context directly.
+
     Workflow: call without `apply`, show the user the operations (create/update/unchanged) and
     `unmatched` list, then call again with `apply=true` once they agree. Needs the Creator role.
     """
     plan = ossie.plan_import(
         client(), document, _graph(graph_id),
         target_datasource_id=target_datasource_id, model_name=model_name, include_definitions=include_definitions,
+        scope=scope,
     )  # fmt: skip
     if not apply or not plan.get("valid"):
         return plan

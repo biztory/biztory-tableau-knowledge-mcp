@@ -67,6 +67,7 @@
       "graph_id",
       "include_definitions",
       "model_name",
+      "scope",
       "target_datasource_id"
     ],
     "required": [

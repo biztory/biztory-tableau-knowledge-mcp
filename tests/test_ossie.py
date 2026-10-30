@@ -526,3 +526,57 @@ def test_prompts_are_registered():
     assert set(prompts) == {"export_datasource_to_ossie", "import_ossie_into_tableau_knowledge"}
     assert "export_to_ossie" in server.export_datasource_prompt("Superstore")
     assert "apply=true" in server.import_ossie_prompt("model.ossie.yaml", "Superstore")
+
+
+def _disabled(call):
+    """What BiztoryPulse answered (2026-10-30) to any node-scoped create."""
+    if "target_node_id" in call["body"]:
+        return http_error(
+            "u", 403, kerr("node_semantic_context_disabled", "Node-scoped semantic context is disabled")
+        )
+    return Resp({"id": "semctx:global-1"}, 201)
+
+
+def test_auto_scope_falls_back_to_one_global_context(api):
+    text = _enriched(api)
+    plan = server.import_from_ossie(text)
+    assert plan["scope"] == "auto" and plan["global_fallback"]["scope"] == "global"
+    assert "global_fallback" in plan["notes"][-1]
+    assert "Sales Model / Sales: Gross sales in EUR." in plan["global_fallback"]["statements"]
+    assert "Sales Model: Curated sales model." in plan["global_fallback"]["statements"]
+    api.route("POST", "/semantic-contexts", _disabled)
+    out = server.import_from_ossie(text, apply=True)
+    assert "fallback_to_global" in out
+    assert out["results"] == [{"node_id": None, "result": "created", "context_id": "semctx:global-1"}]
+    posts = [c for c in api.calls if c["method"] == "POST" and c["path"].endswith("/semantic-contexts")]
+    assert len(posts) == 2  # one refused node attempt, then the global context
+    assert posts[1]["body"]["is_global"] is True and posts[1]["body"]["name"] == "ossie:sales_model"
+
+
+def test_node_scope_never_falls_back(api):
+    text = _enriched(api)
+    api.route("POST", "/semantic-contexts", _disabled)
+    out = server.import_from_ossie(text, scope="node", apply=True)
+    assert "fallback_to_global" not in out and "global_fallback" not in out
+    assert out["applied_summary"]["failed"] == out["summary"]["create"]
+    assert "graph-wide" in out["results"][0]["error"]  # the hint explains what to do
+
+
+def test_global_scope_plans_and_updates_the_global_context(api):
+    text = _enriched(api)
+    plan = server.import_from_ossie(text, scope="global")
+    assert len(plan["operations"]) == 1 and plan["operations"][0]["node_name"] == "(whole graph)"
+    statements = plan["operations"][0]["statements"]
+    existing = [*CONTEXTS, {"id": "semctx:og", "type": "SEMANTIC_CONTEXT", "name": "ossie:sales_model", "target_node_id": None,
+                            "properties": {"is_global": True, "statements": [{"id": "z", "statement": s} for s in statements]}}]  # fmt: skip
+    _serve(api, contexts=existing)
+    again = server.import_from_ossie(text, scope="global")
+    assert (
+        again["operations"][0]["action"] == "unchanged"
+        and again["operations"][0]["context_id"] == "semctx:og"
+    )
+
+
+def test_scope_is_checked(api):
+    with pytest.raises(TableauError, match="scope must be one of"):
+        server.import_from_ossie(yaml.safe_dump(GOOD), target_datasource_id=PDS, scope="everywhere")

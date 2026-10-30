@@ -170,7 +170,7 @@ Write tools are annotated `readOnlyHint: false` (update, delete and import also 
 
 The export validates its own output and returns a `losses` list. Knowledge has no physical table paths or join keys, so `source` and `relationships` need filling in. INCLUDE/EXCLUDE LODs, table calcs, parameters and some functions stay Tableau-only, each named in the report.
 
-**Ossie → Tableau Knowledge** (`import_from_ossie`): the Knowledge API can write semantic contexts, so that is what an Ossie model becomes. Descriptions, `ai_context` instructions, synonyms ("Also known as…"), example questions and metric definitions land on the matching nodes, one `ossie:<model>` context per node. Matching uses the ids from a previous export first, then names. The first call returns the plan (create / update / unchanged, plus anything unmatched), and nothing is written until `apply=true`. Statements Tableau already holds are skipped, so re-importing an unedited export writes nothing.
+**Ossie → Tableau Knowledge** (`import_from_ossie`): the Knowledge API can write semantic contexts, so that is what an Ossie model becomes. Descriptions, `ai_context` instructions, synonyms ("Also known as…"), example questions and metric definitions land on the matching nodes, one `ossie:<model>` context per node. Matching uses the ids from a previous export first, then names. On sites that accept only graph-wide context through the API, the same statements become one global `ossie:<model>` context, each prefixed with what it describes (`Superstore / Sales: Also known as: revenue.`); `scope` forces `node` or `global`. The first call returns the plan (create / update / unchanged, plus anything unmatched), and nothing is written until `apply=true`. Statements Tableau already holds are skipped, so re-importing an unedited export writes nothing.
 
 **Two slash commands.** The server ships two MCP prompts that walk through the workflow: *Export a data source to Ossie* and *Import an Ossie model into Tableau Knowledge*. In Claude Code they appear as `/mcp__tableau-knowledge__export_datasource_to_ossie` and `/mcp__tableau-knowledge__import_ossie_into_tableau_knowledge` (with the server name you chose).
 
@@ -214,6 +214,7 @@ The server speaks MCP over **stdio** to the client and HTTPS to Tableau: it sign
 - **Context search doesn't filter by text yet.** `search_semantic_contexts` filters by node or `is_global`; find statements by meaning with `search_nodes`.
 - **Unknown ids behave differently per endpoint.** The API's lineage returns an empty graph for an unknown id; this server resolves the node first, so you always get a clear error instead.
 - **Deletes are idempotent.** Deleting an unknown id succeeds without effect.
+- **Some sites accept only graph-wide context.** Creating a node-attached context can fail with `node_semantic_context_disabled` ("node-scoped context is managed by Tableau and arrives through ingestion"); BiztoryPulse does this. Use `is_global=true` and name the field in the statement. `import_from_ossie` falls back to that automatically.
 - **The API is rate-limited.** Crawling a large graph node by node hits HTTP 429; the server retries with back-off, but prefer `lineage` and `impact_analysis` over many `get_node` calls.
 
 ## Security

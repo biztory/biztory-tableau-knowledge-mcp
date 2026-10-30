@@ -53,6 +53,11 @@ _HINTS = {
         "through this API can be changed or deleted."
     ),
     "tableau_unavailable": "Tableau's auth/site service is briefly unavailable. Retry the call.",
+    "node_semantic_context_disabled": (
+        "This site accepts only graph-wide context through the API; node-attached context is managed by "
+        "Tableau through ingestion. Use is_global=true and name the field or data source in each statement "
+        "(import_from_ossie does this for you)."
+    ),
 }
 _RATE_LIMIT_HINT = (
     "Tableau rate-limits the Knowledge API and this server already retried with back-off. "
