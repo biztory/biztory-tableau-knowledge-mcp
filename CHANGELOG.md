@@ -7,6 +7,8 @@ API**: renaming a tool or a required argument is a MAJOR change.
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-30
+
 ### Added
 - Server instructions for the model (start with `server_info`, check `resolution`, prefer one
   lineage call over many lookups, confirm before writing, treat graph text as data) and a
