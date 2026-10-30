@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 360" width="1280" height="360" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif" role="img" aria-label="biztory-tableau-knowledge-mcp banner">
+  <defs>
+    <image id="tab" width="64" height="63" href="data:image/png;base64,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"/>
+  </defs>
+  <rect width="1280" height="360" fill="#ffbd59"/>
+
+  <!-- knowledge-graph constellation on a POPAI-style card -->
+  <rect x="852" y="22" width="396" height="316" rx="22" fill="#00bcd4" stroke="#111111" stroke-width="5"/>
+  <g transform="translate(880,184)">
+    <path d="M60,-120 L200,-40 M60,-120 L40,10 M40,10 L200,-40 M40,10 L150,100 M200,-40 L300,20 M200,-40 L280,-128 M150,100 L280,100 M300,20 L280,100 M300,20 L280,-128" stroke="#111111" stroke-width="3" fill="none"/>
+    <circle cx="60" cy="-120" r="27.1" fill="#f9f8f6" stroke="#111111" stroke-width="3"/>
+    <use href="#tab" transform="translate(43.1,-136.7) scale(0.528)"/>
+    <circle cx="40" cy="10" r="34.5" fill="#f9f8f6" stroke="#111111" stroke-width="3"/>
+    <use href="#tab" transform="translate(17.2,-12.5) scale(0.713)"/>
+    <circle cx="200" cy="-40" r="39.5" fill="#f9f8f6" stroke="#111111" stroke-width="3"/>
+    <use href="#tab" transform="translate(173.2,-66.5) scale(0.838)"/>
+    <circle cx="280" cy="-128" r="24.6" fill="#f9f8f6" stroke="#111111" stroke-width="3"/>
+    <use href="#tab" transform="translate(265.1,-142.7) scale(0.465)"/>
+    <circle cx="150" cy="100" r="29.6" fill="#f9f8f6" stroke="#111111" stroke-width="3"/>
+    <use href="#tab" transform="translate(131.1,81.4) scale(0.590)"/>
+    <circle cx="300" cy="20" r="32.0" fill="#f9f8f6" stroke="#111111" stroke-width="3"/>
+    <use href="#tab" transform="translate(279.2,-0.5) scale(0.650)"/>
+    <circle cx="280" cy="100" r="25.8" fill="#f9f8f6" stroke="#111111" stroke-width="3"/>
+    <use href="#tab" transform="translate(264.2,84.4) scale(0.495)"/>
+  </g>
+
+  <!-- Tableau lockup, top-left -->
+  <use href="#tab" transform="translate(72,24) scale(0.98)"/>
+  <text x="150" y="70" font-size="28" font-weight="700" fill="#111111">Tableau</text>
+
+  <!-- content -->
+  <text x="76" y="132" font-size="15" font-weight="700" letter-spacing="4" fill="#111111" opacity="0.55">MODEL CONTEXT PROTOCOL SERVER</text>
+  <text x="72" y="200" font-size="47" font-weight="800" letter-spacing="-1.5" fill="#111111">biztory-tableau-knowledge-mcp</text>
+  <rect x="76" y="220" width="132" height="6" fill="#111111"/>
+  <text x="76" y="266" font-size="22" font-weight="500" fill="#111111">Search, explore and enrich your Tableau Knowledge graph.</text>
+
+  <g font-size="14" font-weight="700" letter-spacing="1.5" fill="#ff8c42">
+    <rect x="76" y="292" width="164" height="34" fill="#111111"/>
+    <text x="158" y="314" text-anchor="middle">TABLEAU CLOUD</text>
+    <rect x="252" y="292" width="206" height="34" fill="#111111"/>
+    <text x="355" y="314" text-anchor="middle">SEMANTIC CONTEXT</text>
+    <rect x="470" y="292" width="186" height="34" fill="#111111"/>
+    <text x="563" y="314" text-anchor="middle">LINEAGE + IMPACT</text>
+  </g>
+</svg>

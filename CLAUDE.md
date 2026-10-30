@@ -15,6 +15,7 @@ uv run pytest tests/test_server_tools.py::test_name  # single test
 uv run pytest --cov=biztory_tableau_knowledge_mcp    # with coverage (CI floor: 85%, branch coverage)
 uv run ruff check . && uv run ruff format --check .  # lint + format
 uv run mypy                                          # strict mode, src/ only
+uv run --python 3.12 --group fuzz python fuzz/fuzz_untrusted_input.py -max_total_time=60   # Linux only
 npx @modelcontextprotocol/inspector uv run biztory-tableau-knowledge-mcp   # interactive tool testing
 ```
 

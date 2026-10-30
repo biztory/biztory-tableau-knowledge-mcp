@@ -69,7 +69,8 @@ What to expect:
   - `uv.lock` pins every package by hash.
   - GitHub Actions are pinned by commit SHA.
   - Dependabot updates wait 7 days before adopting a new release, except for security fixes.
-  - CodeQL and the OpenSSF Scorecard run in CI.
+  - CodeQL, the OpenSSF Scorecard and a fuzzer for the untrusted-input parsers (error bodies
+    from the network, ids from the model) run in CI.
 - **Out of scope.** Vulnerabilities in Tableau itself, in your MCP client, or in your model
   provider.
 
