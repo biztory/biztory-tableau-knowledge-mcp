@@ -11,6 +11,11 @@ updates:
     groups:
       python:
         patterns: ["*"]
+    ignore:
+      # mcp 2.x removed mcp.server.fastmcp, which this server is built on; that move is a
+      # deliberate migration, not a routine bump (see the closed PR #1).
+      - dependency-name: "mcp"
+        update-types: ["version-update:semver-major"]
   # One grouped PR, so actions that must move together (e.g. CodeQL init/analyze) do.
   - package-ecosystem: github-actions
     directory: "/"
