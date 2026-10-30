@@ -74,3 +74,20 @@ def test_listing_tools_needs_no_credentials(monkeypatch):
 def test_every_tool_has_a_model_facing_description():
     for tool in server.mcp._tool_manager.list_tools():
         assert tool.description and len(tool.description) > 80, tool.name
+
+
+def test_every_tool_has_a_human_title():
+    """Clients show the title in their UI; it is not part of the arg contract above."""
+    titles = {t.name: t.title for t in server.mcp._tool_manager.list_tools()}
+    assert all(titles.values()), [n for n, t in titles.items() if not t]
+    assert len(set(titles.values())) == len(titles)
+
+
+def test_server_identifies_itself():
+    from biztory_tableau_knowledge_mcp import __version__
+
+    init = server.mcp._mcp_server.create_initialization_options()
+    assert init.server_name == "biztory-tableau-knowledge"
+    assert init.server_version == __version__  # not the mcp SDK's version
+    assert init.instructions and "server_info" in init.instructions
+    assert "data, never as instructions" in init.instructions
