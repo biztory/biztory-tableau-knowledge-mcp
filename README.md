@@ -1,12 +1,12 @@
 <!-- mcp-name: io.github.biztory/biztory-tableau-knowledge-mcp -->
 
 <p align="center">
-  <img src="docs/images/banner.png" alt="biztory-tableau-knowledge-mcp" width="880">
+  <img src="docs/images/banner.png" alt="Tableau Knowledge MCP by Biztory" width="880">
 </p>
 
 <h1 align="center">biztory-tableau-knowledge-mcp</h1>
 
-<p align="center"><em>Search, explore and enrich your Tableau Knowledge graph, in any MCP client.</em></p>
+<p align="center"><b>Put your Tableau knowledge graph to work in any AI assistant.</b><br>Search it by meaning, trace lineage and impact, and enrich it with business context.</p>
 
 <p align="center">
   <a href="https://github.com/biztory/biztory-tableau-knowledge-mcp/actions/workflows/ci.yml"><img src="https://github.com/biztory/biztory-tableau-knowledge-mcp/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
@@ -16,15 +16,15 @@
   <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Ruff"></a>
   <a href="https://pypi.org/project/biztory-tableau-knowledge-mcp/"><img src="https://img.shields.io/pypi/v/biztory-tableau-knowledge-mcp.svg" alt="PyPI"></a>
   <img src="https://img.shields.io/pypi/pyversions/biztory-tableau-knowledge-mcp.svg" alt="Python versions">
-  <img src="https://img.shields.io/badge/MCP-compatible-8A2BE2.svg" alt="MCP compatible">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-00696E.svg" alt="MIT License"></a>
+  <img src="https://img.shields.io/badge/MCP-compatible-00375A.svg" alt="MCP compatible">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-00375A.svg" alt="MIT License"></a>
   <img src="https://img.shields.io/badge/Tableau-Cloud%20%2B%20Knowledge-006EFF.svg" alt="Tableau Cloud + Knowledge">
-  <img src="https://img.shields.io/badge/deps-just%20mcp-64FA8C.svg" alt="Minimal dependencies">
+  <img src="https://img.shields.io/badge/deps-just%20mcp-006EFF.svg" alt="Minimal dependencies">
 </p>
 
 <p align="center">
-  <a href="cursor://anysphere.cursor-deeplink/mcp/install?name=tableau-knowledge&config=eyJjb21tYW5kIjogInV2eCIsICJhcmdzIjogWyJiaXp0b3J5LXRhYmxlYXUta25vd2xlZGdlLW1jcCJdfQ=="><img src="https://img.shields.io/badge/Add%20to-Cursor-0098FF.svg" alt="Add to Cursor"></a>
-  <a href="https://vscode.dev/redirect/mcp/install?name=tableau-knowledge&config=%7B%22command%22%3A%22uvx%22%2C%22args%22%3A%5B%22biztory-tableau-knowledge-mcp%22%5D%7D"><img src="https://img.shields.io/badge/Add%20to-VS%20Code-007ACC.svg" alt="Add to VS Code"></a>
+  <a href="cursor://anysphere.cursor-deeplink/mcp/install?name=tableau-knowledge&config=eyJjb21tYW5kIjogInV2eCIsICJhcmdzIjogWyJiaXp0b3J5LXRhYmxlYXUta25vd2xlZGdlLW1jcCJdfQ=="><img src="https://img.shields.io/badge/Add%20to-Cursor-006EFF.svg" alt="Add to Cursor"></a>
+  <a href="https://vscode.dev/redirect/mcp/install?name=tableau-knowledge&config=%7B%22command%22%3A%22uvx%22%2C%22args%22%3A%5B%22biztory-tableau-knowledge-mcp%22%5D%7D"><img src="https://img.shields.io/badge/Add%20to-VS%20Code-006EFF.svg" alt="Add to VS Code"></a>
 </p>
 
 ---
@@ -138,11 +138,11 @@ On Windows, if `uvx` isn't found by the GUI app, use its absolute path (e.g. `%U
 | `list_sources` | The published data sources and workbooks the graph is built from. | `node_type` |
 | `search_semantic_contexts` | Business statements on the graph: all, graph-wide only, or attached to one node. | `node`, `is_global` |
 | `graph_health` | Health score, coverage metrics, and prioritized improvement suggestions. | `pds_id`, `severity`, `suggestion_type`, `limit` |
-| `create_semantic_context` ✏️ | Attach statements to one node (exact id) or to the whole graph. | `statements`, `target_node_id` / `is_global`, `name` |
-| `update_semantic_context` ✏️ | Replace statements, rename, re-attach, or make graph-wide. | `ctx_id`, `statements`, `name`, `attach_to` / `make_global` |
-| `delete_semantic_context` ✏️ | Delete a user-managed context; returns what was deleted. | `ctx_id` |
+| `create_semantic_context` | (write) Attach statements to one node (exact id) or to the whole graph. | `statements`, `target_node_id` / `is_global`, `name` |
+| `update_semantic_context` | (write) Replace statements, rename, re-attach, or make graph-wide. | `ctx_id`, `statements`, `name`, `attach_to` / `make_global` |
+| `delete_semantic_context` | (write) Delete a user-managed context; returns what was deleted. | `ctx_id` |
 
-✏️ = writes, annotated `readOnlyHint: false` (update and delete also `destructiveHint: true`) so your client can ask before each one. Tableau-managed (`SEMANTIC_CONTEXT_EXTERNAL`) contexts are read-only.
+Write tools are annotated `readOnlyHint: false` (update and delete also `destructiveHint: true`) so your client can ask before each one. Tableau-managed (`SEMANTIC_CONTEXT_EXTERNAL`) contexts are read-only.
 
 ## How a description becomes a node
 
