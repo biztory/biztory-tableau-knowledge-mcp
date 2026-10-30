@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Secrets: never commit real credentials
+.env
+.env.local
+*.pat
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Test/coverage artifacts (also keeps them out of the sdist, which honours .gitignore)
+.coverage
+coverage.xml
+.hypothesis/

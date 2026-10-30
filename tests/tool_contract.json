@@ -1,0 +1,117 @@
+{
+  "create_semantic_context": {
+    "props": [
+      "graph_id",
+      "is_global",
+      "name",
+      "statements",
+      "target_node_id"
+    ],
+    "required": [
+      "statements"
+    ]
+  },
+  "delete_semantic_context": {
+    "props": [
+      "ctx_id",
+      "graph_id"
+    ],
+    "required": [
+      "ctx_id"
+    ]
+  },
+  "get_node": {
+    "props": [
+      "graph_id",
+      "include_children",
+      "node"
+    ],
+    "required": [
+      "node"
+    ]
+  },
+  "graph_health": {
+    "props": [
+      "graph_id",
+      "limit",
+      "pds_id",
+      "severity",
+      "suggestion_type"
+    ],
+    "required": []
+  },
+  "impact_analysis": {
+    "props": [
+      "graph_id",
+      "node"
+    ],
+    "required": [
+      "node"
+    ]
+  },
+  "lineage": {
+    "props": [
+      "graph_id",
+      "node"
+    ],
+    "required": [
+      "node"
+    ]
+  },
+  "list_edges": {
+    "props": [
+      "direction",
+      "edge_type",
+      "graph_id",
+      "node"
+    ],
+    "required": [
+      "node"
+    ]
+  },
+  "list_sources": {
+    "props": [
+      "graph_id",
+      "node_type"
+    ],
+    "required": []
+  },
+  "search_nodes": {
+    "props": [
+      "graph_id",
+      "limit",
+      "node_type",
+      "query",
+      "scope_id",
+      "threshold"
+    ],
+    "required": [
+      "query"
+    ]
+  },
+  "search_semantic_contexts": {
+    "props": [
+      "graph_id",
+      "is_global",
+      "node"
+    ],
+    "required": []
+  },
+  "server_info": {
+    "props": [],
+    "required": []
+  },
+  "update_semantic_context": {
+    "props": [
+      "attach_to",
+      "ctx_id",
+      "graph_id",
+      "make_global",
+      "name",
+      "statements"
+    ],
+    "required": [
+      "ctx_id"
+    ]
+  }
+}

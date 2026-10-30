@@ -1,0 +1,55 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
+  "name": "io.github.biztory/biztory-tableau-knowledge-mcp",
+  "description": "Search, explore and enrich the Tableau Knowledge graph: semantic search, lineage, impact.",
+  "status": "active",
+  "repository": {
+    "url": "https://github.com/biztory/biztory-tableau-knowledge-mcp",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "registryBaseUrl": "https://pypi.org",
+      "identifier": "biztory-tableau-knowledge-mcp",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "TABLEAU_SERVER",
+          "description": "https://<pod>.online.tableau.com (Tableau Knowledge is a Tableau Cloud feature)",
+          "isRequired": true
+        },
+        {
+          "name": "TABLEAU_SITE_CONTENT_URL",
+          "description": "Site content-url slug (the part after /#/site/)",
+          "isRequired": true
+        },
+        {
+          "name": "TABLEAU_PAT_NAME",
+          "description": "Personal Access Token name",
+          "isRequired": true
+        },
+        {
+          "name": "TABLEAU_PAT_SECRET",
+          "description": "Personal Access Token secret (the whole string)",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "TABLEAU_KNOWLEDGE_GRAPH_ID",
+          "description": "Default graph id; empty = the site's primary graph",
+          "isRequired": false
+        },
+        {
+          "name": "TABLEAU_LOG_LEVEL",
+          "description": "DEBUG, INFO (default), WARNING or ERROR; DEBUG logs each HTTP call (method + URL) to stderr",
+          "isRequired": false
+        }
+      ]
+    }
+  ]
+}
