@@ -7,6 +7,11 @@ API**: renaming a tool or a required argument is a MAJOR change.
 
 ## [Unreleased]
 
+### Added
+- Releases are listed on the official MCP registry automatically: `mcp-registry.yml` runs after the
+  PyPI publish and logs in with GitHub OIDC, which proves the repo belongs to the `biztory` org.
+  The `mcp-publisher` binary is pinned to v1.7.9 and checked against its published SHA-256.
+
 ## [0.1.0] - 2026-10-30
 
 ### Added
