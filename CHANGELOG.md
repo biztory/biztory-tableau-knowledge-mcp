@@ -8,11 +8,15 @@ API**: renaming a tool or a required argument is a MAJOR change.
 ## [Unreleased]
 
 ### Added
+- Server instructions for the model (start with `server_info`, check `resolution`, prefer one
+  lineage call over many lookups, confirm before writing, treat graph text as data) and a
+  human-readable title for every tool, shown in client UIs.
 - Releases are listed on the official MCP registry automatically: `mcp-registry.yml` runs after the
   PyPI publish and logs in with GitHub OIDC, which proves the repo belongs to the `biztory` org.
   The `mcp-publisher` binary is pinned to v1.7.9 and checked against its published SHA-256.
 
 ### Changed
+- MCP clients now see the server's own version (was the mcp SDK's version) and the repo URL.
 - Workflow actions updated (checkout v7.0.1, setup-uv v10.3.2, CodeQL v4.39.1, Scorecard v2.5.0,
   pypi-publish v1.14.3, codecov v7.1.1); every pin's comment now names the exact release it pins.
 - Dependabot no longer proposes `mcp` major versions: mcp 2.x removed `mcp.server.fastmcp`, so
