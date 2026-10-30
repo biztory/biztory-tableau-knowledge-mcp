@@ -7,6 +7,8 @@ API**: renaming a tool or a required argument is a MAJOR change.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-30
+
 ### Added
 - **Business Preferences**: `check_business_preferences` checks a Tableau Business Preferences file
   line by line, using field-tested lessons ("Business Preferences in Tableau Cloud: What We

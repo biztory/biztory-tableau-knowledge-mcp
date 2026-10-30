@@ -239,7 +239,7 @@ The server speaks MCP over **stdio** to the client and HTTPS to Tableau: it sign
 - **No injection through ids.** Node and context ids are encoded as one path segment; `graph_id` is checked against Tableau's pattern before it is sent. Both parsers of untrusted input are fuzzed in CI.
 - **YAML is parsed safely.** Ossie documents go through `yaml.safe_load` (no tags, no code), with a 5 MB cap; `validate_ossie` and `ossie_guide` never contact Tableau.
 - **Verifiable releases.** Every GitHub release carries Sigstore signatures and a CycloneDX SBOM, and PyPI uploads use Trusted Publishing.
-- Pin a version in production: `uvx biztory-tableau-knowledge-mcp==0.2.0`.
+- Pin a version in production: `uvx biztory-tableau-knowledge-mcp==0.3.0`.
 
 See [SECURITY.md](SECURITY.md) for the threat model, data handling, disclosure policy and how to verify a release.
 
