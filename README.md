@@ -12,6 +12,7 @@
   <a href="https://github.com/biztory/biztory-tableau-knowledge-mcp/actions/workflows/ci.yml"><img src="https://github.com/biztory/biztory-tableau-knowledge-mcp/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/biztory/biztory-tableau-knowledge-mcp/actions/workflows/codeql.yml"><img src="https://github.com/biztory/biztory-tableau-knowledge-mcp/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
   <a href="https://github.com/biztory/biztory-tableau-knowledge-mcp/actions/workflows/fuzz.yml"><img src="https://github.com/biztory/biztory-tableau-knowledge-mcp/actions/workflows/fuzz.yml/badge.svg" alt="Fuzz"></a>
+  <a href="https://www.bestpractices.dev/projects/16080"><img src="https://www.bestpractices.dev/projects/16080/badge" alt="OpenSSF Best Practices"></a>
   <a href="https://securityscorecards.dev/viewer/?uri=github.com/biztory/biztory-tableau-knowledge-mcp"><img src="https://api.securityscorecards.dev/projects/github.com/biztory/biztory-tableau-knowledge-mcp/badge" alt="OpenSSF Scorecard"></a>
   <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Ruff"></a>
   <a href="https://pypi.org/project/biztory-tableau-knowledge-mcp/"><img src="https://img.shields.io/pypi/v/biztory-tableau-knowledge-mcp?color=006EFF" alt="PyPI"></a>
