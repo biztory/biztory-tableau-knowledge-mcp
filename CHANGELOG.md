@@ -7,6 +7,8 @@ API**: renaming a tool or a required argument is a MAJOR change.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-30
+
 ### Added
 - **Apache Ossie (formerly OSI) support**, for porting semantic layers:
   - `export_to_ossie`: a published data source as an Ossie 0.2.0.dev0 model. Logical tables ->
