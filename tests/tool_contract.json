@@ -1,4 +1,13 @@
 {
+  "check_business_preferences": {
+    "props": [
+      "graph_id",
+      "product",
+      "target",
+      "text"
+    ],
+    "required": []
+  },
   "create_semantic_context": {
     "props": [
       "graph_id",

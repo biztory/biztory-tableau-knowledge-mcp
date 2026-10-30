@@ -118,8 +118,11 @@ def _loss(losses: list[dict[str, str]], severity: str, element: str, code: str, 
 # ---------------------------------------------------------------- load a data source from Knowledge
 
 
-def load_datasource(c: TableauClient, pds_id: str, graph: dict[str, Any]) -> dict[str, Any]:
-    """Fetch a published data source with its logical tables, fields and semantic contexts."""
+def load_datasource(
+    c: TableauClient, pds_id: str, graph: dict[str, Any], allowed: tuple[str, ...] = ("PDS",)
+) -> dict[str, Any]:
+    """Fetch a data source (published by default; embedded ones have the same shape) with its
+    logical tables, fields and semantic contexts."""
 
     def node(node_id: str, children: bool) -> dict[str, Any]:
         result: dict[str, Any] = c.knowledge(
@@ -128,7 +131,7 @@ def load_datasource(c: TableauClient, pds_id: str, graph: dict[str, Any]) -> dic
         return result
 
     pds = node(pds_id, True)
-    if pds.get("type") != "PDS":
+    if pds.get("type") not in allowed:
         raise TableauError(
             f"{pds.get('name')!r} is a {pds.get('type')}, not a published data source (PDS). "
             "Use list_sources to find a data source id."
