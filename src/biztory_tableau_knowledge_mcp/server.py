@@ -18,9 +18,10 @@ from typing import Any
 from mcp.server.fastmcp import FastMCP
 from mcp.types import ToolAnnotations
 
-from . import __version__
+from . import __version__, ossie
 from .client import TableauClient, TableauError, segment
 from .config import GRAPH_ID_PATTERN, Settings
+from .ossie_guide import GUIDE, TOPICS
 
 # stdio transport: logs MUST go to stderr; stdout carries the JSON-RPC protocol.
 # TABLEAU_LOG_LEVEL=DEBUG logs every HTTP call (method + URL; never headers, bodies or secrets).
@@ -59,6 +60,7 @@ _client: TableauClient | None = None
 _READ = ToolAnnotations(readOnlyHint=True, destructiveHint=False, openWorldHint=True)
 _CREATE = ToolAnnotations(readOnlyHint=False, destructiveHint=False, idempotentHint=False, openWorldHint=True)
 _REPLACE = ToolAnnotations(readOnlyHint=False, destructiveHint=True, idempotentHint=True, openWorldHint=True)
+_LOCAL = ToolAnnotations(readOnlyHint=True, destructiveHint=False, openWorldHint=False)
 
 # Statement length the API enforces (as a 400); checked here first for a clearer message.
 _STATEMENT_MIN, _STATEMENT_MAX = 5, 1000
@@ -457,6 +459,130 @@ def delete_semantic_context(ctx_id: str, graph_id: str | None = None) -> dict[st
         "ctx_id": ctx,
         "deleted": {k: before.get(k) for k in ("name", "properties", "semantic_statements")},
     }
+
+
+# ---------------------------------------------------------------- Apache Ossie (formerly OSI)
+
+
+@mcp.tool(title="Export to Ossie", annotations=_READ)
+def export_to_ossie(
+    datasource: str,
+    include_hidden: bool = False,
+    default_aggregation_metrics: bool = True,
+    graph_id: str | None = None,
+) -> dict[str, Any]:
+    """Export a published data source's semantic model to Apache Ossie (formerly OSI) YAML, the
+    vendor-neutral format that Snowflake, dbt, Power BI, Databricks, Tableau Next and other tools
+    convert from. Returns `ossie` (the YAML text, to save as `file_name`), `summary`, `validation`
+    and `losses` (what could not be carried and what to fix by hand).
+
+    `datasource` is a PDS id (from list_sources) or a description of it. Logical tables become
+    datasets, fields become fields, row-level calcs become fields and aggregate calcs become
+    metrics; every calc keeps its Tableau formula and gains portable SQL when the translation is
+    exact. Semantic-context statements become ai_context. `default_aggregation_metrics` also turns
+    each measure's Tableau default aggregation into a metric (total_sales = SUM(sales)).
+    Always read `losses`: Tableau Knowledge has no physical table paths or join keys, so `source`
+    and `relationships` need filling in before the model is used elsewhere. See ossie_guide.
+    """
+    found, resolution = _resolve(datasource, graph_id)
+    result = ossie.export_datasource(
+        client(), str(found["id"]), _graph(graph_id),
+        include_hidden=include_hidden, default_aggregation_metrics=default_aggregation_metrics,
+    )  # fmt: skip
+    return {**result, "resolution": resolution} if resolution else result
+
+
+@mcp.tool(title="Validate Ossie model", annotations=_LOCAL)
+def validate_ossie(document: str, model_name: str | None = None) -> dict[str, Any]:
+    """Validate an Apache Ossie (formerly OSI) model, given as YAML or JSON text, against the
+    official JSON Schema (0.2.0.dev0, bundled) and the spec's semantic rules: duplicate names,
+    keys and relationship columns that are not declared fields, unknown datasets, qualified names
+    in dataset-scoped metrics. 0.1.1 documents (`semantic_model:` list) are converted first; pass
+    `model_name` when one holds several models. Runs locally: nothing is sent to Tableau."""
+    model, notes = ossie.normalize(ossie.parse_document(document), model_name)
+    return {**ossie.validate_document(model), "version": model.get("version"), "notes": notes}
+
+
+@mcp.tool(title="Import from Ossie", annotations=_REPLACE)
+def import_from_ossie(
+    document: str,
+    target_datasource_id: str | None = None,
+    model_name: str | None = None,
+    apply: bool = False,
+    include_definitions: bool = True,
+    graph_id: str | None = None,
+) -> dict[str, Any]:
+    """Bring the business meaning of an Apache Ossie (formerly OSI) model into Tableau Knowledge
+    as semantic contexts. WRITES only when `apply` is true; by default it returns the PLAN.
+
+    `document` is the model as YAML or JSON text. Elements are matched to nodes of one published
+    data source: models exported by export_to_ossie map back by their stored ids; other models
+    need `target_datasource_id` (an exact PDS id from list_sources) and match by name. Each matched
+    node gets one context named `ossie:<model>` holding its description, ai_context instructions,
+    synonyms ("Also known as: ..."), example questions, metric definition (`include_definitions`)
+    and relationships. Re-importing updates those contexts instead of duplicating them.
+
+    Workflow: call without `apply`, show the user the operations (create/update/unchanged) and
+    `unmatched` list, then call again with `apply=true` once they agree. Needs the Creator role.
+    """
+    plan = ossie.plan_import(
+        client(), document, _graph(graph_id),
+        target_datasource_id=target_datasource_id, model_name=model_name, include_definitions=include_definitions,
+    )  # fmt: skip
+    if not apply or not plan.get("valid"):
+        return plan
+    return ossie.apply_plan(client(), plan, _graph(graph_id))
+
+
+@mcp.tool(title="Ossie guide", annotations=_LOCAL)
+def ossie_guide(topic: str | None = None) -> dict[str, Any]:
+    """Reference for Apache Ossie (formerly Open Semantic Interchange, OSI), the open standard for
+    semantic models: what it is and its versions, the object model and rules, expressions and
+    dialects, how Tableau maps onto it, relationships, ai_context, extensions, validation, the
+    converters for other platforms (with exact commands), and a porting playbook with pitfalls.
+    Read it before hand-editing a model or advising on a port. `topic` is one of: overview, model,
+    expressions, tableau, relationships, ai_context, extensions, validation, converters, porting;
+    omit it for everything."""
+    if topic:
+        key = topic.strip().lower()
+        if key not in GUIDE:
+            return {"error": f"unknown topic {topic!r}", "topics": TOPICS}
+        return {"topic": key, "content": GUIDE[key], "topics": TOPICS}
+    return {"topics": TOPICS, "content": "\n\n".join(GUIDE.values())}
+
+
+@mcp.prompt(
+    name="export_datasource_to_ossie",
+    title="Export a data source to Ossie",
+    description="Export a Tableau published data source to an Apache Ossie (OSI) semantic model, ready to port.",
+)
+def export_datasource_prompt(datasource: str) -> str:
+    return f"""Export the Tableau published data source "{datasource}" to an Apache Ossie semantic model.
+
+1. If needed, call list_sources to find the data source, then export_to_ossie with its id.
+2. Save the returned `ossie` text to a file named after `file_name` in the current folder.
+3. Summarise for me: datasets, fields, metrics, and how many calcs got portable SQL.
+4. Walk me through the `losses`, grouped by code, most important first, and say exactly what to
+   change in the file (dataset `source` paths, `relationships`, calcs left in the TABLEAU dialect).
+5. Ask which platform I am porting to, then use ossie_guide (topic `converters` and `porting`) to
+   give me the exact next commands and the pitfalls for that platform."""
+
+
+@mcp.prompt(
+    name="import_ossie_into_tableau_knowledge",
+    title="Import an Ossie model into Tableau Knowledge",
+    description="Bring an Apache Ossie (OSI) model's descriptions, synonyms and definitions into Tableau Knowledge.",
+)
+def import_ossie_prompt(file_path: str, target_datasource: str = "") -> str:
+    target = f' into the data source "{target_datasource}"' if target_datasource else ""
+    return f"""Import the Apache Ossie semantic model in {file_path}{target} into Tableau Knowledge.
+
+1. Read the file and call validate_ossie with its content; stop and show me any errors.
+2. If the model was not exported from Tableau, find the target published data source with
+   list_sources and use its exact id as target_datasource_id.
+3. Call import_from_ossie WITHOUT apply. Show me the plan as a table: node, action
+   (create/update/unchanged), how it matched, and the statements. List anything unmatched.
+4. Only after I confirm, call import_from_ossie again with apply=true and report the results."""
 
 
 def main() -> None:

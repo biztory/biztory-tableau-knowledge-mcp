@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 640" width="1160" height="640" font-family="'Segoe UI',Helvetica,Arial,sans-serif" role="img" aria-label="Architecture diagram">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 780" width="1160" height="780" font-family="'Segoe UI',Helvetica,Arial,sans-serif" role="img" aria-label="Architecture diagram">
   <defs>
     <linearGradient id="hero" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#00696E"/><stop offset="1" stop-color="#00575B"/>
@@ -17,7 +17,7 @@
     </style>
   </defs>
 
-  <rect width="1160" height="640" fill="#F8FAFC"/>
+  <rect width="1160" height="780" fill="#F8FAFC"/>
   <text x="40" y="46" class="eyebrow">HOW IT WORKS</text>
   <text x="40" y="74" font-size="24" font-weight="600" fill="#0042FF">Local MCP server to the Tableau Knowledge Graph API</text>
   <!-- 1. MCP client -->
@@ -32,11 +32,11 @@
   </g>
   <!-- 2. the server (hero) -->
   <g>
-    <rect x="365" y="86" width="310" height="456" rx="16" fill="url(#hero)"/>
+    <rect x="365" y="86" width="310" height="596" rx="16" fill="url(#hero)"/>
     <text x="386" y="120" font-size="17" font-weight="600" fill="#fff">biztory-tableau-knowledge-mcp</text>
-    <text x="386" y="142" font-size="12.5" fill="#BEEBE4">FastMCP · Python · stdlib only</text>
-    <text x="386" y="164" font-size="11" font-weight="600" letter-spacing="1.5" fill="#64FA8C">READS · ID OR DESCRIPTION</text>
-        <rect x="386" y="172" width="268" height="24" rx="7" fill="#ffffff" opacity="0.12"/><text x="400" y="188" class="tool">server_info</text>
+    <text x="386" y="142" font-size="12.5" fill="#BEEBE4">FastMCP · Python · mcp + pyyaml</text>
+        <text x="386" y="164" font-size="11" font-weight="600" letter-spacing="1.5" fill="#64FA8C">READS · ID OR DESCRIPTION</text>
+    <rect x="386" y="172" width="268" height="24" rx="7" fill="#ffffff" opacity="0.12"/><text x="400" y="188" class="tool">server_info</text>
     <rect x="386" y="200" width="268" height="24" rx="7" fill="#ffffff" opacity="0.12"/><text x="400" y="216" class="tool">search_nodes</text>
     <rect x="386" y="228" width="268" height="24" rx="7" fill="#ffffff" opacity="0.12"/><text x="400" y="244" class="tool">get_node</text>
     <rect x="386" y="256" width="268" height="24" rx="7" fill="#ffffff" opacity="0.12"/><text x="400" y="272" class="tool">list_edges</text>
@@ -45,10 +45,15 @@
     <rect x="386" y="340" width="268" height="24" rx="7" fill="#ffffff" opacity="0.12"/><text x="400" y="356" class="tool">list_sources</text>
     <rect x="386" y="368" width="268" height="24" rx="7" fill="#ffffff" opacity="0.12"/><text x="400" y="384" class="tool">search_semantic_contexts</text>
     <rect x="386" y="396" width="268" height="24" rx="7" fill="#ffffff" opacity="0.12"/><text x="400" y="412" class="tool">graph_health</text>
-    <text x="386" y="436" font-size="11" font-weight="600" letter-spacing="1.5" fill="#FFBD59">WRITES · SEMANTIC CONTEXT ONLY</text>
-    <rect x="386" y="444" width="268" height="24" rx="7" fill="#FFBD59" opacity="0.22"/><text x="400" y="460" class="tool">create_semantic_context</text>
-    <rect x="386" y="472" width="268" height="24" rx="7" fill="#FFBD59" opacity="0.22"/><text x="400" y="488" class="tool">update_semantic_context</text>
-    <rect x="386" y="500" width="268" height="24" rx="7" fill="#FFBD59" opacity="0.22"/><text x="400" y="516" class="tool">delete_semantic_context</text>
+    <text x="386" y="440" font-size="11" font-weight="600" letter-spacing="1.5" fill="#FFBD59">WRITES · SEMANTIC CONTEXT ONLY</text>
+    <rect x="386" y="448" width="268" height="24" rx="7" fill="#FFBD59" opacity="0.22"/><text x="400" y="464" class="tool">create_semantic_context</text>
+    <rect x="386" y="476" width="268" height="24" rx="7" fill="#FFBD59" opacity="0.22"/><text x="400" y="492" class="tool">update_semantic_context</text>
+    <rect x="386" y="504" width="268" height="24" rx="7" fill="#FFBD59" opacity="0.22"/><text x="400" y="520" class="tool">delete_semantic_context</text>
+    <text x="386" y="548" font-size="11" font-weight="600" letter-spacing="1.5" fill="#21CEDE">APACHE OSSIE (OSI) · PORTING</text>
+    <rect x="386" y="556" width="268" height="24" rx="7" fill="#21CEDE" opacity="0.22"/><text x="400" y="572" class="tool">export_to_ossie</text>
+    <rect x="386" y="584" width="268" height="24" rx="7" fill="#21CEDE" opacity="0.22"/><text x="400" y="600" class="tool">import_from_ossie</text>
+    <rect x="386" y="612" width="268" height="24" rx="7" fill="#21CEDE" opacity="0.22"/><text x="400" y="628" class="tool">validate_ossie</text>
+    <rect x="386" y="640" width="268" height="24" rx="7" fill="#21CEDE" opacity="0.22"/><text x="400" y="656" class="tool">ossie_guide</text>
   </g>
   <!-- 3. Knowledge API -->
   <g>
@@ -69,15 +74,26 @@
     <text x="1015" y="282" class="lbls">graphs · nodes</text>
     <text x="1015" y="299" class="lbls">edges · context</text>
   </g>
+  <!-- 5. Ossie files -->
+  <g>
+    <rect x="760" y="560" width="375" height="130" rx="14" class="card"/>
+    <text x="780" y="590" class="h">Apache Ossie model (.ossie.yaml)</text>
+    <text x="780" y="616" class="s">Vendor-neutral semantic model: datasets, fields,</text>
+    <text x="780" y="636" class="s">metrics, relationships, AI context</text>
+    <text x="780" y="666" class="lbls">converters → Snowflake · dbt · Power BI · Databricks · Tableau Next</text>
+  </g>
   <!-- arrows -->
   <line x1="272" y1="245" x2="360" y2="270" stroke="#006EFF" stroke-width="2" marker-end="url(#arrow)"/>
   <line x1="678" y1="270" x2="756" y2="245" stroke="#006EFF" stroke-width="2" marker-end="url(#arrow)"/>
   <line x1="952" y1="245" x2="991" y2="245" stroke="#006EFF" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="678" y1="610" x2="756" y2="620" stroke="#006EFF" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="756" y1="640" x2="680" y2="632" stroke="#006EFF" stroke-width="2" marker-end="url(#arrow)"/>
   <!-- arrow labels -->
   <text x="316" y="200" text-anchor="middle" class="lbl">stdio</text>
   <text x="316" y="216" text-anchor="middle" class="lbls">MCP</text>
   <text x="717" y="200" text-anchor="middle" class="lbl">HTTPS</text>
   <text x="717" y="216" text-anchor="middle" class="lbls">PAT session</text>
-  <text x="40" y="588" class="s">Runs locally over stdio. No inbound port. Secrets from environment only. Writes touch semantic contexts only, take exact ids, and are annotated so clients can ask first.</text>
-  <text x="40" y="612" class="s">Auth: Personal Access Token, session auto-refreshed. Rate limits (429) retried with Retry-After. Errors mapped to next steps with their trace_id.</text>
+  <text x="717" y="590" text-anchor="middle" class="lbl">YAML</text>
+  <text x="40" y="736" class="s">Runs locally over stdio. No inbound port. Secrets from environment only. Writes touch semantic contexts only, take exact ids, and are annotated so clients can ask first.</text>
+  <text x="40" y="760" class="s">Ossie export validates against the official schema and reports every loss; import shows a plan before it writes. Rate limits (429) retried with Retry-After.</text>
 </svg>

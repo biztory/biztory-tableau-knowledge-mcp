@@ -30,8 +30,8 @@ npx @modelcontextprotocol/inspector uv run biztory-tableau-knowledge-mcp
   improving a tool's docstring over adding a narrow tool.
 - **Writes stay narrow.** Only semantic-context create/update/delete. Write tools take exact ids,
   never a search phrase, and carry honest MCP annotations.
-- **Stdlib first.** The only runtime dependency is the MCP SDK; keep it that way unless there's
-  a strong reason.
+- **Stdlib first.** Runtime dependencies are the MCP SDK and PyYAML (for Ossie YAML); keep it
+  that way unless there's a strong reason.
 - **Secrets via env only**, never as tool arguments, never logged.
 - **No writes to stdout**: it carries the JSON-RPC protocol. Log to stderr.
 - Add/adjust a test for behavior changes; update `CHANGELOG.md` under `[Unreleased]`.

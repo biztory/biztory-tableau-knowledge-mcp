@@ -318,10 +318,17 @@ def test_delete_unknown_id_is_idempotent_and_honest(api):
 
 def test_annotations_tell_reads_from_writes():
     tools = {t.name: t.annotations for t in server.mcp._tool_manager.list_tools()}
-    writes = {"create_semantic_context", "update_semantic_context", "delete_semantic_context"}
+    writes = {
+        "create_semantic_context",
+        "update_semantic_context",
+        "delete_semantic_context",
+        "import_from_ossie",
+    }
+    local = {"validate_ossie", "ossie_guide"}  # never talk to Tableau
     for name, ann in tools.items():
-        assert ann is not None and ann.openWorldHint is True, name
+        assert ann is not None and ann.openWorldHint is (name not in local), name
         assert ann.readOnlyHint is (name not in writes), name
+    assert tools["import_from_ossie"].destructiveHint is True
     assert tools["create_semantic_context"].destructiveHint is False
     assert tools["update_semantic_context"].destructiveHint is True
     assert tools["delete_semantic_context"].destructiveHint is True

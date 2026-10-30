@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "biztory-tableau-knowledge-mcp"
 dynamic = ["version"]
-description = "Search, explore and enrich the Tableau Knowledge graph from any MCP client: semantic search, lineage, impact and semantic context."
+description = "Search, explore and enrich the Tableau Knowledge graph from any MCP client, and port it to Apache Ossie (OSI)."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
@@ -13,7 +13,7 @@ license-files = ["LICENSE"]
 authors = [{ name = "Biztory" }, { name = "Tim Dries", email = "tim.dries@biztory.be" }]
 keywords = [
     "mcp", "model-context-protocol", "tableau", "tableau-knowledge", "knowledge-graph",
-    "semantic-layer", "data-lineage", "llm", "claude", "ai-agents",
+    "semantic-layer", "apache-ossie", "osi", "data-lineage", "llm", "claude", "ai-agents",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -31,14 +31,24 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    # official MCP SDK (bundles FastMCP + pydantic). No other runtime deps: stdlib urllib for HTTP.
+    # official MCP SDK (bundles FastMCP + pydantic + jsonschema). Plus PyYAML for Apache Ossie YAML.
+    # Nothing else at runtime: stdlib urllib for HTTP.
     # >=1.28.1: first release with no known advisories (GHSA-9h52-p55h-vw2f and later).
     # <2 because mcp 2.0.0 removed mcp.server.fastmcp, which crashes the server on import.
     "mcp>=1.28.1,<2",
+    "pyyaml>=6.0.2",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.6", "mypy>=1.11", "hypothesis>=6"]
+dev = [
+    "pytest>=8",
+    "pytest-cov>=5",
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "hypothesis>=6",
+    "types-pyyaml>=6.0.12.20261030",
+    "types-jsonschema>=4.26.0.20261006",
+]
 
 
 # Not installed by `uv sync --all-extras`. Linux + Python 3.12+ only (atheris ships no other wheels).

@@ -19,7 +19,7 @@
   <img src="https://img.shields.io/badge/MCP-compatible-00375A.svg" alt="MCP compatible">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-00375A.svg" alt="MIT License"></a>
   <img src="https://img.shields.io/badge/Tableau-Cloud%20%2B%20Knowledge-006EFF.svg" alt="Tableau Cloud + Knowledge">
-  <img src="https://img.shields.io/badge/deps-just%20mcp-006EFF.svg" alt="Minimal dependencies">
+  <img src="https://img.shields.io/badge/deps-mcp%20%2B%20pyyaml-006EFF.svg" alt="Minimal dependencies">
 </p>
 
 <p align="center">
@@ -29,14 +29,15 @@
 
 ---
 
-**biztory-tableau-knowledge-mcp** turns your site's [Tableau Knowledge Graph API](https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_tableau_knowledge_graph.htm) into twelve MCP tools, so an AI assistant (Claude, Cursor, VS Code, Cline, and others) can work with the graph in plain language:
+**biztory-tableau-knowledge-mcp** turns your site's [Tableau Knowledge Graph API](https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_tableau_knowledge_graph.htm) into sixteen MCP tools, so an AI assistant (Claude, Cursor, VS Code, Cline, and others) can work with the graph in plain language:
 
 - _"Which fields mean **revenue**, and where do they come from?"_
 - _"If the **Superstore** data source changes, which workbooks and dashboards are affected?"_
 - _"What business context is attached to **Profit**? Add: 'Profit is after returns, in EUR.'"_
 - _"How healthy is our graph, and what are the five highest-impact fixes?"_
+- _"Export **Superstore** to Apache Ossie so we can port it to Snowflake."_
 
-It ships **nine read tools** (semantic search, node lookup, edges, lineage, impact, sources, semantic contexts, graph health, and a connection probe) and **three write tools** that only touch semantic contexts, the business statements that make the graph useful to people and to AI.
+It ships **nine read tools** (semantic search, node lookup, edges, lineage, impact, sources, semantic contexts, graph health, and a connection probe) and **three write tools** that only touch semantic contexts, the business statements that make the graph useful to people and to AI. Four more tools **port semantic layers** through [Apache Ossie](https://ossie.apache.org) (formerly Open Semantic Interchange, OSI), the open standard that Snowflake, dbt, Power BI, Databricks, Tableau Next and others convert to and from.
 
 ### Why it's different
 
@@ -44,7 +45,8 @@ It ships **nine read tools** (semantic search, node lookup, edges, lineage, impa
 - **Answers, not payloads.** `impact_analysis` groups and counts everything downstream by type; `lineage` adds node and edge counts; `graph_health` caps hundreds of suggestions to the top ones while keeping every total.
 - **Errors tell the model what to do next.** Tableau's error codes become concrete steps (`site_not_entitled` → an admin must enable Knowledge; `no_active_graph` → pass a `graph_id`; no embedder → use exact ids), with the `trace_id` kept for support. Rate limits are retried with `Retry-After`.
 - **Writes you can trust.** Only semantic contexts can be written. Write tools take exact ids (a fuzzy match never decides where a write lands), validate before sending, carry honest MCP annotations so clients ask first, and `delete_semantic_context` returns what it deleted.
-- **Tiny and hardened.** Stdio only (no inbound port), secrets from env only, HTTPS enforced, redirects refused, ids encoded so they can never reach another endpoint, fuzzed parsers, and **no dependencies beyond the MCP SDK** (stdlib `urllib` for HTTP).
+- **Port your semantic layer.** `export_to_ossie` turns a published data source into a validated Ossie model, with Tableau calcs translated to portable SQL wherever that is exact and a loss report for everything else. `import_from_ossie` brings descriptions, synonyms and definitions from any Ossie model back into Tableau Knowledge, with a reviewable plan first.
+- **Tiny and hardened.** Stdio only (no inbound port), secrets from env only, HTTPS enforced, redirects refused, ids encoded so they can never reach another endpoint, fuzzed parsers, and **two runtime dependencies**: the MCP SDK and PyYAML (stdlib `urllib` for HTTP).
 
 ## Requirements
 
@@ -141,8 +143,38 @@ On Windows, if `uvx` isn't found by the GUI app, use its absolute path (e.g. `%U
 | `create_semantic_context` | (write) Attach statements to one node (exact id) or to the whole graph. | `statements`, `target_node_id` / `is_global`, `name` |
 | `update_semantic_context` | (write) Replace statements, rename, re-attach, or make graph-wide. | `ctx_id`, `statements`, `name`, `attach_to` / `make_global` |
 | `delete_semantic_context` | (write) Delete a user-managed context; returns what was deleted. | `ctx_id` |
+| `export_to_ossie` | A published data source as an Apache Ossie model (YAML), plus validation and a loss report. | `datasource`, `include_hidden`, `default_aggregation_metrics` |
+| `validate_ossie` | Check any Ossie model (YAML/JSON) against the official schema and the spec's rules. Local only. | `document`, `model_name` |
+| `import_from_ossie` | (write) Plan, then apply, the semantic contexts an Ossie model adds to a data source. | `document`, `target_datasource_id`, `apply` |
+| `ossie_guide` | Reference for Ossie: object model, expressions, Tableau mapping, converters, porting playbook. Local only. | `topic` |
 
-Write tools are annotated `readOnlyHint: false` (update and delete also `destructiveHint: true`) so your client can ask before each one. Tableau-managed (`SEMANTIC_CONTEXT_EXTERNAL`) contexts are read-only.
+Write tools are annotated `readOnlyHint: false` (update, delete and import also `destructiveHint: true`) so your client can ask before each one. Tableau-managed (`SEMANTIC_CONTEXT_EXTERNAL`) contexts are read-only.
+
+## Port your semantic layer with Apache Ossie
+
+[Apache Ossie](https://ossie.apache.org) (incubating, formerly Open Semantic Interchange) is a vendor-neutral YAML standard for semantic models. There was no converter for classic Tableau; this server is one, built on the Knowledge graph, so the business context travels too.
+
+**Tableau → Ossie** (`export_to_ossie`):
+
+| Tableau Knowledge | Ossie |
+|---|---|
+| Published data source | Model (`name`, `description`, `ai_context`) |
+| Logical table | Dataset |
+| Column field | Field (`sql` = source column; `dimension`, `datatype`) |
+| Row-level calc | Field, Tableau formula in the `TABLEAU` dialect plus portable `sql` when exact |
+| Aggregate calc | Metric (dataset-scoped, or model-scoped with qualified names when it spans tables) |
+| `{FIXED [d]: SUM([x])}` | `SUM(x) OVER (PARTITION BY d)` |
+| Default aggregation of a measure | Metric (`total_sales = SUM(sales)`) |
+| Descriptions and semantic contexts | `description` and `ai_context` |
+| Ids, captions, roles, original formulas | `custom_extensions` vendor `TABLEAU` (for exact round trips) |
+
+The export validates its own output and returns a `losses` list. Knowledge has no physical table paths or join keys, so `source` and `relationships` need filling in. INCLUDE/EXCLUDE LODs, table calcs, parameters and some functions stay Tableau-only, each named in the report.
+
+**Ossie → Tableau Knowledge** (`import_from_ossie`): the Knowledge API can write semantic contexts, so that is what an Ossie model becomes. Descriptions, `ai_context` instructions, synonyms ("Also known as…"), example questions and metric definitions land on the matching nodes, one `ossie:<model>` context per node. Matching uses the ids from a previous export first, then names. The first call returns the plan (create / update / unchanged, plus anything unmatched), and nothing is written until `apply=true`. Statements Tableau already holds are skipped, so re-importing an unedited export writes nothing.
+
+**Two slash commands.** The server ships two MCP prompts that walk through the workflow: *Export a data source to Ossie* and *Import an Ossie model into Tableau Knowledge*. In Claude Code they appear as `/mcp__tableau-knowledge__export_datasource_to_ossie` and `/mcp__tableau-knowledge__import_ossie_into_tableau_knowledge` (with the server name you chose).
+
+**Onward to other platforms.** Converters exist for Snowflake, dbt, Power BI, Databricks, Tableau Next, Cube, ThoughtSpot, Omni, Sigma and more. None are on PyPI yet, so `ossie_guide` (topic `converters`) gives the exact commands, pinned to a reviewed commit. The server will wrap them as tools once they are published.
 
 ## How a description becomes a node
 
@@ -191,6 +223,7 @@ The server speaks MCP over **stdio** to the client and HTTPS to Tableau: it sign
 - **Secrets from env only.** Never tool arguments, never logged, never returned.
 - **Credentials go only to your Tableau host.** HTTPS required, certificates verified, redirects refused.
 - **No injection through ids.** Node and context ids are encoded as one path segment; `graph_id` is checked against Tableau's pattern before it is sent. Both parsers of untrusted input are fuzzed in CI.
+- **YAML is parsed safely.** Ossie documents go through `yaml.safe_load` (no tags, no code), with a 5 MB cap; `validate_ossie` and `ossie_guide` never contact Tableau.
 - **Verifiable releases.** Every GitHub release carries Sigstore signatures and a CycloneDX SBOM, and PyPI uploads use Trusted Publishing.
 - Pin a version in production: `uvx biztory-tableau-knowledge-mcp==0.1.1`.
 
@@ -233,7 +266,9 @@ Contributions welcome: see [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code of C
 
 ## Roadmap
 
-- [ ] Import an OSI (Open Semantic Interchange) model as semantic contexts
+- [x] Export to and import from Apache Ossie (formerly OSI)
+- [ ] Wrap the Ossie converters (Snowflake, dbt, Power BI, Databricks) as tools once they are published on PyPI
+- [ ] Ossie relationships from Tableau join keys, when the Knowledge API exposes them
 - [ ] A demo recording in this README
 - [ ] Optional per-session caching of `server_info` and resolved nodes
 

@@ -20,6 +20,17 @@
       "ctx_id"
     ]
   },
+  "export_to_ossie": {
+    "props": [
+      "datasource",
+      "default_aggregation_metrics",
+      "graph_id",
+      "include_hidden"
+    ],
+    "required": [
+      "datasource"
+    ]
+  },
   "get_node": {
     "props": [
       "graph_id",
@@ -49,6 +60,19 @@
       "node"
     ]
   },
+  "import_from_ossie": {
+    "props": [
+      "apply",
+      "document",
+      "graph_id",
+      "include_definitions",
+      "model_name",
+      "target_datasource_id"
+    ],
+    "required": [
+      "document"
+    ]
+  },
   "lineage": {
     "props": [
       "graph_id",
@@ -73,6 +97,12 @@
     "props": [
       "graph_id",
       "node_type"
+    ],
+    "required": []
+  },
+  "ossie_guide": {
+    "props": [
+      "topic"
     ],
     "required": []
   },
@@ -112,6 +142,15 @@
     ],
     "required": [
       "ctx_id"
+    ]
+  },
+  "validate_ossie": {
+    "props": [
+      "document",
+      "model_name"
+    ],
+    "required": [
+      "document"
     ]
   }
 }

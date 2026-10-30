@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-An MCP server (stdio transport) that exposes the Tableau Knowledge Graph API (`/api/v1/knowledge`, Tableau Cloud only) as twelve tools: nine reads and three semantic-context writes. Single runtime dependency: the `mcp` SDK. Everything else is stdlib (`urllib` for HTTP); keep it that way. Sister project: `../tableau-graphql-mcp` (Metadata API), which this one mirrors in structure and quality bar.
+An MCP server (stdio transport) that exposes the Tableau Knowledge Graph API (`/api/v1/knowledge`, Tableau Cloud only) as sixteen tools: nine reads, three semantic-context writes, and four Apache Ossie (formerly OSI) tools for porting semantic layers, plus two MCP prompts. Runtime dependencies: the `mcp` SDK and PyYAML (Ossie YAML). Everything else is stdlib (`urllib` for HTTP); keep it that way. Sister project: `../tableau-graphql-mcp` (Metadata API), which this one mirrors in structure and quality bar.
 
 ## Commands
 
@@ -28,6 +28,9 @@ MCP client ⇄ stdio ⇄ `server.py` (FastMCP tools) → `client.py` (auth + HTT
 - `server.py`: the 12 `@mcp.tool()` functions. Docstrings are the model-facing API docs and carry the API's quirks. `_resolve()` turns a node id OR a description into a node: exact `GET /nodes/{id}` first, on `not_found` the top semantic-search match, returning a `resolution` block (score + alternatives). Write tools never use `_resolve`: exact ids only.
 - `client.py`: `TableauClient`. PAT sign-in (REST version from the *versioned* `/api/3.4/serverinfo`; the bare `/api/serverinfo` is 404 on Cloud) → `X-Tableau-Auth`, re-sign-in once on 401. `knowledge(method, path, query, body)` is the one call path. `describe_http_error()` maps the error envelope (`code`/`message`/`trace_id`) to a message plus a next step (`_HINTS`); `TableauError.code` carries the API code (`_resolve` branches on `not_found`).
 - `config.py`: `Settings.from_env()`; all config via `TABLEAU_*` env vars. `GRAPH_ID_PATTERN` is the documented `graph_id` pattern.
+- `ossie.py`: Tableau Knowledge <-> Apache Ossie. `load_datasource` (PDS -> logical tables -> fields, plus contexts), `export_datasource` (the mapping; every gap goes in `losses`), `validate_document` (bundled `schemas/ossie-schema-0.2.0.dev0.json` + semantic rules), `normalize` (0.1.1 -> 0.2.0 shape), `plan_import`/`apply_plan`. Tableau ids round-trip in `custom_extensions` vendor `TABLEAU`.
+- `tableau_calc.py`: Tableau formula -> OSSIE_SQL translator. Conservative by design: anything not exact raises `Untranslatable` with a reason, and the formula stays in the `TABLEAU` dialect.
+- `ossie_guide.py`: the reference text served by `ossie_guide`, with the spec/converter commits it was read at. Update it (and the bundled schema) when the spec moves.
 
 ## Non-negotiable constraints
 
@@ -37,6 +40,7 @@ MCP client ⇄ stdio ⇄ `server.py` (FastMCP tools) → `client.py` (auth + HTT
 - **Secrets from env only**: never tool arguments, never logged, never in output or errors.
 - **Keep the tool surface small.** Improve a docstring before adding a tool.
 - **The tool contract is pinned.** `tests/test_tool_contract.py` snapshots names + args in `tests/tool_contract.json`; regenerate on purpose (command in its docstring), note it in `CHANGELOG.md`, MAJOR bump for renames/removals.
+- **Ossie output must validate.** `export_datasource` validates its own model; a mapping change that produces an invalid model is a bug. Never drop information silently: put it in `losses` or the `TABLEAU` stash.
 - **Bound big responses** and say so (e.g. `graph_health` limit 20 with full totals). Never truncate silently.
 - Behavior changes need a test and a `CHANGELOG.md` entry under `[Unreleased]`.
 
