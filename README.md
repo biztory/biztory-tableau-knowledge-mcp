@@ -24,6 +24,10 @@
 </p>
 
 <p align="center">
+  <a href="https://mcprush.com/to/biztory-tableau-knowledge-mcp?ref=badge"><img src="https://mcprush.com/badge/biztory-tableau-knowledge-mcp/card.svg" alt="Biztory Tableau Knowledge MCP server on mcprush"></a>
+</p>
+
+<p align="center">
   <a href="cursor://anysphere.cursor-deeplink/mcp/install?name=tableau-knowledge&config=eyJjb21tYW5kIjogInV2eCIsICJhcmdzIjogWyJiaXp0b3J5LXRhYmxlYXUta25vd2xlZGdlLW1jcCJdfQ=="><img src="https://img.shields.io/badge/Add%20to-Cursor-006EFF.svg" alt="Add to Cursor"></a>
   <a href="https://vscode.dev/redirect/mcp/install?name=tableau-knowledge&config=%7B%22command%22%3A%22uvx%22%2C%22args%22%3A%5B%22biztory-tableau-knowledge-mcp%22%5D%7D"><img src="https://img.shields.io/badge/Add%20to-VS%20Code-006EFF.svg" alt="Add to VS Code"></a>
 </p>
