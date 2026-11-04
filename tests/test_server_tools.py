@@ -581,7 +581,8 @@ def test_ask_tableau_agent_forgets_oldest_conversations(api, monkeypatch):
 
 class _Raw(Resp):
     def __init__(self, text: str):
-        self._b, self.status = text.encode(), 200
+        super().__init__(None)
+        self._b = text.encode()
 
 
 def _sse_resp(text: str) -> _Raw:
