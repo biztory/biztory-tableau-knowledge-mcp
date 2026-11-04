@@ -7,6 +7,8 @@ API**: renaming a tool or a required argument is a MAJOR change.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-04
+
 ### Added
 - `add_sources` and `remove_sources`: add published data sources and workbooks to a knowledge graph,
   or remove them (exact LUIDs only, `graph_id` required, never an empty list since Tableau reads that
