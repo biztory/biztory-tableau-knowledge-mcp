@@ -77,15 +77,23 @@ class FakeKnowledge:
             "method": req.get_method(),
             "path": path,
             "query": dict(urllib.parse.parse_qsl(url.query)),
-            "body": json.loads(req.data) if req.data else None,
+            "body": (
+                json.loads(req.data)
+                if req.data and (req.get_header("Content-type") or "").startswith("application/json")
+                else req.data or None
+            ),
+            "content_type": req.get_header("Content-type"),
             "auth": req.get_header("X-tableau-auth"),
         }
         if path.endswith("/serverinfo"):
             return Resp({"serverInfo": {"productVersion": {"value": "2026.3.2"}, "restApiVersion": "3.30"}})
         self.calls.append(call)
-        prefix = "/api/v1/knowledge"
-        assert path.startswith(prefix), path
-        sub = path[len(prefix) :]
+        if path.startswith("/knowledge/api/"):  # the web app's internal API: routes start with /ui
+            sub = "/ui" + path[len("/knowledge/api") :]
+        else:
+            prefix = "/api/v1/knowledge"
+            assert path.startswith(prefix), path
+            sub = path[len(prefix) :]
         fn = self.routes.get((call["method"], sub))
         if fn is not None:
             out = fn(call)
@@ -95,6 +103,8 @@ class FakeKnowledge:
         return self._default(call, sub, req.full_url)
 
     def _default(self, call: dict[str, Any], sub: str, url: str) -> Resp:
+        if sub.startswith("/ui/"):
+            raise http_error(url, 404, kerr("not_found", "Resource not found."))
         parts = [urllib.parse.unquote(p) for p in sub.strip("/").split("/")]
         if parts[0] == "nodes" and len(parts) == 2 and call["method"] == "GET":
             node = NODES.get(parts[1])
