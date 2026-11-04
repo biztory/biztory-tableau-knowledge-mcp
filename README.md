@@ -34,7 +34,7 @@
 
 ---
 
-**biztory-tableau-knowledge-mcp** turns your site's [Tableau Knowledge Graph API](https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_tableau_knowledge_graph.htm) into seventeen MCP tools, so an AI assistant (Claude, Cursor, VS Code, Cline, and others) can work with the graph in plain language:
+**biztory-tableau-knowledge-mcp** turns your site's [Tableau Knowledge Graph API](https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_tableau_knowledge_graph.htm) into twenty-three MCP tools, so an AI assistant (Claude, Cursor, VS Code, Cline, and others) can work with the graph in plain language:
 
 - _"Which fields mean **revenue**, and where do they come from?"_
 - _"If the **Superstore** data source changes, which workbooks and dashboards are affected?"_
@@ -50,7 +50,7 @@ It ships **nine read tools** (semantic search, node lookup, edges, lineage, impa
 - **Ask by meaning, not by id.** Every read tool takes a node id *or* a description ("the net sales field"). Descriptions resolve through the graph's own semantic search, and the answer says which node it picked, with the match score and runners-up, so a wrong guess is visible instead of silent.
 - **Answers, not payloads.** `impact_analysis` groups and counts everything downstream by type; `lineage` adds node and edge counts; `graph_health` caps hundreds of suggestions to the top ones while keeping every total.
 - **Errors tell the model what to do next.** Tableau's error codes become concrete steps (`site_not_entitled` → an admin must enable Knowledge; `no_active_graph` → pass a `graph_id`; no embedder → use exact ids), with the `trace_id` kept for support. Rate limits are retried with `Retry-After`.
-- **Writes you can trust.** Only semantic contexts can be written. Write tools take exact ids (a fuzzy match never decides where a write lands), validate before sending, carry honest MCP annotations so clients ask first, and `delete_semantic_context` returns what it deleted.
+- **Writes you can trust.** Only semantic contexts and a graph's sources can be written (the latter through Tableau Knowledge's undocumented web-app API, which can change without notice). Write tools take exact ids (a fuzzy match never decides where a write lands), validate before sending, carry honest MCP annotations so clients ask first, and `delete_semantic_context` returns what it deleted.
 - **Port your semantic layer.** `export_to_ossie` turns a published data source into a validated Ossie model, with Tableau calcs translated to portable SQL wherever that is exact and a loss report for everything else. `import_from_ossie` brings descriptions, synonyms and definitions from any Ossie model back into Tableau Knowledge, with a reviewable plan first.
 - **Tiny and hardened.** Stdio only (no inbound port), secrets from env only, HTTPS enforced, redirects refused, ids encoded so they can never reach another endpoint, fuzzed parsers, and **two runtime dependencies**: the MCP SDK and PyYAML (stdlib `urllib` for HTTP).
 
@@ -137,18 +137,24 @@ On Windows, if `uvx` isn't found by the GUI app, use its absolute path (e.g. `%U
 
 | Tool | What it does | Key args |
 |---|---|---|
-| `server_info` | Site, versions, auth, whether Knowledge is enabled, and every graph (id, name, status, primary). Good first call. | none |
+| `server_info` | Site, versions, auth, whether Knowledge is enabled, the site's feature switches, and every graph (id, name, status, primary, stats incl. context coverage). Good first call. | none |
 | `search_nodes` | Semantic search over the graph ("revenue" finds "Net Sales"), ranked with scores. | `query`, `node_type`, `scope_id`, `limit`, `threshold` |
 | `get_node` | One node: properties, attached semantic statements, child nodes. | `node`, `include_children` |
 | `list_edges` | The edges around one node, with direction and the node on the other end. | `node`, `edge_type`, `direction` |
 | `lineage` | Upstream and downstream neighborhood (10 steps) along lineage/dependency edges, with counts. | `node` |
 | `impact_analysis` | Everything that depends on a node, transitively, grouped and counted by type. | `node` |
-| `list_sources` | The published data sources and workbooks the graph is built from. | `node_type` |
+| `list_sources` | The published data sources and workbooks the graph is built from, plus the latest ingest status. With `site_search`, finds sources anywhere on the site (LUID + whether they're in the graph). | `node_type`, `site_search` |
 | `search_semantic_contexts` | Business statements on the graph: all, graph-wide only, or attached to one node. | `node`, `is_global` |
 | `graph_health` | Health score, coverage metrics, and prioritized improvement suggestions. | `pds_id`, `severity`, `suggestion_type`, `limit` |
 | `create_semantic_context` | (write) Attach statements to one node (exact id) or to the whole graph. | `statements`, `target_node_id` / `is_global`, `name` |
 | `update_semantic_context` | (write) Replace statements, rename, re-attach, or make graph-wide. | `ctx_id`, `statements`, `name`, `attach_to` / `make_global` |
 | `delete_semantic_context` | (write) Delete a user-managed context; returns what was deleted. | `ctx_id` |
+| `create_semantic_context_from_document` | (write) Upload a .txt/.md/.csv/.pdf/.docx/.xlsx (max 2 MB); Tableau makes each line a statement. Undocumented web-app API. | `file_path`, `target_node_id` / `is_global` |
+| `add_sources` | (write) Add data sources / workbooks to a graph by exact LUID; Tableau ingests them in the background. Undocumented web-app API. | `pds_luids`, `workbook_luids`, `graph_id` |
+| `remove_sources` | (write) Remove data sources / workbooks (and their nodes) from a graph; returns what was removed. Undocumented web-app API. | `pds_luids`, `workbook_luids`, `graph_id` |
+| `create_graph` | (write) Create an empty knowledge graph; fill it with `add_sources`. Undocumented web-app API. | `name`, `description` |
+| `update_graph` | (write) Rename a graph, replace its description, or make it the primary graph. Undocumented web-app API. | `graph_id`, `name`, `make_primary` |
+| `ask_tableau_agent` | Ask Tableau's own agent about a graph, e.g. to test context against an answer key; follow-ups via `conversation_id`. Undocumented web-app API. | `question`, `conversation_id` |
 | `export_to_ossie` | A published data source as an Apache Ossie model (YAML), plus validation and a loss report. | `datasource`, `include_hidden`, `default_aggregation_metrics` |
 | `validate_ossie` | Check any Ossie model (YAML/JSON) against the official schema and the spec's rules. Local only. | `document`, `model_name` |
 | `import_from_ossie` | (write) Plan, then apply, the semantic contexts an Ossie model adds to a data source. | `document`, `target_datasource_id`, `apply` |

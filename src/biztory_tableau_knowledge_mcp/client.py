@@ -25,6 +25,17 @@ from .config import Settings
 log = logging.getLogger("biztory-tableau-knowledge-mcp")
 
 KNOWLEDGE_BASE = "/api/v1/knowledge"
+# ponytail: undocumented API behind the Tableau Knowledge web app. Accepts the same PAT session
+# (verified 2026-11-04). Used only for what the public API lacks: adding/removing graph sources.
+INTERNAL_BASE = "/knowledge/api"
+# The /config switches worth showing in server_info (node_semantic_context_enabled is why node-attached
+# context writes get node_semantic_context_disabled).
+_FEATURE_KEYS = (
+    "node_semantic_context_enabled",
+    "max_graphs_per_site",
+    "auto_refresh_enabled",
+    "admin_enabled",
+)
 
 # What a best-effort HTTP call can actually raise: network/timeout (OSError, incl. URLError),
 # a bad response (HTTPException), non-JSON (ValueError), or an unexpected JSON shape.
@@ -186,6 +197,8 @@ class TableauClient:
         method: str = "GET",
         data: bytes | None = None,
         headers: dict[str, str] | None = None,
+        text: bool = False,
+        timeout: float | None = None,
     ) -> Any:
         h = {"Accept": "application/json"}
         if data is not None:
@@ -194,8 +207,10 @@ class TableauClient:
         # Method + URL only: never headers (auth token) or body (PAT secret).
         log.debug("%s %s", method, url)
         req = urllib.request.Request(url, data=data, headers=h, method=method)
-        with _OPENER.open(req, timeout=self.s.timeout) as r:
+        with _OPENER.open(req, timeout=timeout or self.s.timeout) as r:
             body = r.read()
+        if text:
+            return body.decode("utf-8", "replace")
         return json.loads(body) if body else None
 
     @staticmethod
@@ -279,27 +294,41 @@ class TableauClient:
         *,
         query: dict[str, Any] | None = None,
         body: dict[str, Any] | None = None,
+        base: str = KNOWLEDGE_BASE,
+        upload: tuple[bytes, str] | None = None,
+        text: bool = False,
+        timeout: float | None = None,
     ) -> Any:
         """Call ``/api/v1/knowledge{path}``. Returns parsed JSON, or None for an empty (204) body.
 
         ``path`` must already have its ids encoded with :func:`segment`. ``None`` query values are
-        dropped; booleans are sent as ``true``/``false``.
+        dropped; booleans are sent as ``true``/``false``. ``base`` switches to the web app's
+        internal API (:data:`INTERNAL_BASE`); same auth, retries and error mapping. ``upload``
+        sends ``(bytes, content_type)`` instead of a JSON body; ``text`` returns the raw body.
         """
         params = {
             k: (str(v).lower() if isinstance(v, bool) else str(v))
             for k, v in (query or {}).items()
             if v is not None
         }
-        url = f"{self.s.server}{KNOWLEDGE_BASE}{path}"
+        url = f"{self.s.server}{base}{path}"
         if params:
             url += "?" + urllib.parse.urlencode(params)
         data = json.dumps(body).encode() if body is not None else None
+        extra: dict[str, str] = {}
+        if upload:
+            data, extra["Content-Type"] = upload
 
         def call() -> Any:
             for attempt in range(_MAX_RETRIES + 1):
                 try:
                     return self._request(
-                        url, method=method, data=data, headers={"X-Tableau-Auth": self._get_token()}
+                        url,
+                        method=method,
+                        data=data,
+                        headers={"X-Tableau-Auth": self._get_token(), **extra},
+                        text=text,
+                        timeout=timeout,
                     )
                 except urllib.error.HTTPError as e:
                     if e.code != 429 or attempt == _MAX_RETRIES:
@@ -350,4 +379,28 @@ class TableauClient:
         info["graphs"] = graphs
         if not graphs:
             info["note"] = "Tableau Knowledge is enabled but this site has no graphs yet."
+        self._add_internal_context(info)
         return info
+
+    def _add_internal_context(self, info: dict[str, Any]) -> None:
+        """Feature switches and per-graph stats from the undocumented web-app API. Best effort:
+        if that API moves, server_info just reports less."""
+        try:
+            cfg = self.knowledge("GET", "/config", base=INTERNAL_BASE) or {}
+            info["features"] = {k: cfg.get(k) for k in _FEATURE_KEYS if k in cfg}
+        except TableauError as e:
+            log.debug("feature flags unavailable: %s", e)
+        try:
+            stats = self.knowledge("GET", "/graphs", query={"include_stats": True}, base=INTERNAL_BASE) or []
+            if not isinstance(stats, list):  # not the shape we know: report nothing rather than guess
+                return
+            by_id = {g.get("id"): g for g in stats if isinstance(g, dict)}
+            for g in info["graphs"]:
+                s = by_id.get(g.get("id")) or {}
+                g["stats"] = {k: s.get(k) for k in ("total_nodes", "connected_sources", "workbooks")}
+                cov = self.knowledge(
+                    "GET", "/graph/coverage", query={"graph_id": g.get("id")}, base=INTERNAL_BASE
+                )
+                g["stats"]["context_coverage"] = (cov or {}).get("context_coverage")
+        except TableauError as e:
+            log.debug("graph stats unavailable: %s", e)

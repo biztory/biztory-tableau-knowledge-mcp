@@ -1,4 +1,22 @@
 {
+  "add_sources": {
+    "props": [
+      "graph_id",
+      "pds_luids",
+      "workbook_luids"
+    ],
+    "required": []
+  },
+  "ask_tableau_agent": {
+    "props": [
+      "conversation_id",
+      "graph_id",
+      "question"
+    ],
+    "required": [
+      "question"
+    ]
+  },
   "check_business_preferences": {
     "props": [
       "graph_id",
@@ -7,6 +25,15 @@
       "text"
     ],
     "required": []
+  },
+  "create_graph": {
+    "props": [
+      "description",
+      "name"
+    ],
+    "required": [
+      "name"
+    ]
   },
   "create_semantic_context": {
     "props": [
@@ -18,6 +45,18 @@
     ],
     "required": [
       "statements"
+    ]
+  },
+  "create_semantic_context_from_document": {
+    "props": [
+      "file_path",
+      "graph_id",
+      "is_global",
+      "name",
+      "target_node_id"
+    ],
+    "required": [
+      "file_path"
     ]
   },
   "delete_semantic_context": {
@@ -106,13 +145,22 @@
   "list_sources": {
     "props": [
       "graph_id",
-      "node_type"
+      "node_type",
+      "site_search"
     ],
     "required": []
   },
   "ossie_guide": {
     "props": [
       "topic"
+    ],
+    "required": []
+  },
+  "remove_sources": {
+    "props": [
+      "graph_id",
+      "pds_luids",
+      "workbook_luids"
     ],
     "required": []
   },
@@ -140,6 +188,17 @@
   "server_info": {
     "props": [],
     "required": []
+  },
+  "update_graph": {
+    "props": [
+      "description",
+      "graph_id",
+      "make_primary",
+      "name"
+    ],
+    "required": [
+      "graph_id"
+    ]
   },
   "update_semantic_context": {
     "props": [

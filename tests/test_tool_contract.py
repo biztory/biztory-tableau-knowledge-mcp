@@ -37,6 +37,12 @@ _EXPECTED_TOOLS = {
     "import_from_ossie",
     "ossie_guide",
     "check_business_preferences",
+    "add_sources",
+    "remove_sources",
+    "create_graph",
+    "update_graph",
+    "ask_tableau_agent",
+    "create_semantic_context_from_document",
 }
 
 _CONTRACT_FILE = Path(__file__).parent / "tool_contract.json"
@@ -71,7 +77,7 @@ def test_listing_tools_needs_no_credentials(monkeypatch):
     for var in ("TABLEAU_SERVER", "TABLEAU_PAT_NAME", "TABLEAU_PAT_SECRET", "TABLEAU_AUTH_TOKEN"):
         monkeypatch.delenv(var, raising=False)
     monkeypatch.setattr(server, "_client", None)
-    assert len(server.mcp._tool_manager.list_tools()) == 17
+    assert len(server.mcp._tool_manager.list_tools()) == 23
     with pytest.raises(RuntimeError):
         server.client()  # credentials are only needed on the first real call
 

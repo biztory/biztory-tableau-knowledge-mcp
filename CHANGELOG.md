@@ -7,6 +7,27 @@ API**: renaming a tool or a required argument is a MAJOR change.
 
 ## [Unreleased]
 
+### Added
+- `add_sources` and `remove_sources`: add published data sources and workbooks to a knowledge graph,
+  or remove them (exact LUIDs only, `graph_id` required, never an empty list since Tableau reads that
+  as "everything"). The public Knowledge API can't change a graph's sources, so these use the
+  undocumented API behind the Tableau Knowledge web app (`/knowledge/api`), which accepts the same
+  PAT session. It can change without notice.
+- `list_sources` takes `site_search` to find data sources and workbooks anywhere on the site by name
+  (with their LUIDs and whether they're already in the graph), and reports the graph's latest ingest
+  status as `ingest`.
+- `create_graph` and `update_graph` (rename, new description, make primary).
+- `ask_tableau_agent`: ask Tableau's own agent a question about a graph and get the answer, to test
+  semantic context and Business Preferences against an answer key. Follow-ups keep their history in
+  this server's memory (lost on restart).
+- `create_semantic_context_from_document`: upload a .txt/.md/.csv/.pdf/.docx/.xlsx file (max 2 MB);
+  Tableau makes each line a statement.
+- `server_info` now shows the site's feature switches (`features`, e.g. whether node-attached context
+  is allowed and how many graphs a site may have) and per-graph `stats` (nodes, sources, workbooks,
+  context coverage). Best effort: missing if the internal API changes.
+- All of the above except site search use the undocumented `/knowledge/api` web-app API. Tool
+  contract: six new tools and one new optional argument (MINOR).
+
 ## [0.3.0] - 2026-10-30
 
 ### Added

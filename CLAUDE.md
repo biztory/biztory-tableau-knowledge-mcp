@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-An MCP server (stdio transport) that exposes the Tableau Knowledge Graph API (`/api/v1/knowledge`, Tableau Cloud only) as seventeen tools: nine reads, three semantic-context writes, four Apache Ossie (formerly OSI) tools for porting semantic layers, and a Business Preferences checker, plus three MCP prompts. Runtime dependencies: the `mcp` SDK and PyYAML (Ossie YAML). Everything else is stdlib (`urllib` for HTTP); keep it that way. Sister project: `../tableau-graphql-mcp` (Metadata API), which this one mirrors in structure and quality bar.
+An MCP server (stdio transport) that exposes the Tableau Knowledge Graph API (`/api/v1/knowledge`, Tableau Cloud only) as twenty-three tools: nine reads, four semantic-context writes (one from a document), two graph-source writes, two graph writes (create/update), the Tableau Agent chat, four Apache Ossie (formerly OSI) tools for porting semantic layers, and a Business Preferences checker, plus three MCP prompts. The document, source, graph and agent tools use the web app's undocumented `/knowledge/api` (`client.INTERNAL_BASE`, same PAT session; map in `docs/internal-knowledge-api.md`). Runtime dependencies: the `mcp` SDK and PyYAML (Ossie YAML). Everything else is stdlib (`urllib` for HTTP); keep it that way. Sister project: `../tableau-graphql-mcp` (Metadata API), which this one mirrors in structure and quality bar.
 
 ## Commands
 
@@ -36,7 +36,7 @@ MCP client ⇄ stdio ⇄ `server.py` (FastMCP tools) → `client.py` (auth + HTT
 ## Non-negotiable constraints
 
 - **stdout is the JSON-RPC channel.** Never print to stdout; log to stderr.
-- **Writes stay narrow.** Only semantic contexts; exact ids; validated before sending (statements 5-1000 chars, exactly one of target/global); honest `ToolAnnotations` (`_READ`, `_CREATE`, `_REPLACE`). Never auto-resolve a phrase for a write.
+- **Writes stay narrow.** Only semantic contexts, a graph's sources and graph name/description/primary (never graph delete) (exact LUIDs, explicit `graph_id`, never an empty LUID list: Tableau reads it as "everything"); exact ids; validated before sending (statements 5-1000 chars, exactly one of target/global); honest `ToolAnnotations` (`_READ`, `_CREATE`, `_REPLACE`). Never auto-resolve a phrase for a write.
 - **Ids go through `segment()`** (one encoded path segment). `graph_id` is pattern-checked before sending.
 - **Secrets from env only**: never tool arguments, never logged, never in output or errors.
 - **Keep the tool surface small.** Improve a docstring before adding a tool.
