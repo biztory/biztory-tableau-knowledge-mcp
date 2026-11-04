@@ -32,6 +32,10 @@
   <a href="https://vscode.dev/redirect/mcp/install?name=tableau-knowledge&config=%7B%22command%22%3A%22uvx%22%2C%22args%22%3A%5B%22biztory-tableau-knowledge-mcp%22%5D%7D"><img src="https://img.shields.io/badge/Add%20to-VS%20Code-006EFF.svg" alt="Add to VS Code"></a>
 </p>
 
+<p align="center">
+  <a href="mailto:tim.dries@biztory.be?subject=Meeting%20request%3A%20Tableau%20Knowledge%20MCP&body=Hi%20Tim%2C%0A%0AI%27d%20like%20to%20book%20a%20meeting%20about%20the%20Tableau%20Knowledge%20MCP%20server.%0A%0AProposed%20times%3A%0A%0AThanks%2C"><img src="https://img.shields.io/badge/Book%20a%20meeting-with%20us-00375A.svg" alt="Book a meeting with us"></a>
+</p>
+
 ---
 
 **biztory-tableau-knowledge-mcp** turns your site's [Tableau Knowledge Graph API](https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_tableau_knowledge_graph.htm) into twenty-three MCP tools, so an AI assistant (Claude, Cursor, VS Code, Cline, and others) can work with the graph in plain language:
