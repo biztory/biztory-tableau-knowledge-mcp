@@ -42,8 +42,18 @@
 - _"How healthy is our graph, and what are the five highest-impact fixes?"_
 - _"Export **Superstore** to Apache Ossie so we can port it to Snowflake."_
 - _"Write the Business Preferences for the **P&L** dashboard."_
+- _"Add every **Superstore** data source on the site to the Sales graph."_
+- _"Ask Tableau's agent how many data sources the graph has, and check its answer."_
 
-It ships **nine read tools** (semantic search, node lookup, edges, lineage, impact, sources, semantic contexts, graph health, and a connection probe) and **three write tools** that only touch semantic contexts, the business statements that make the graph useful to people and to AI. Four more tools **port semantic layers** through [Apache Ossie](https://ossie.apache.org) (formerly Open Semantic Interchange, OSI), the open standard that Snowflake, dbt, Power BI, Databricks, Tableau Next and others convert to and from. And one checks **Business Preferences** files line by line against the fields the agent will actually see.
+It ships **nine read tools** (semantic search, node lookup, edges, lineage, impact, sources, semantic contexts, graph health, and a connection probe) and **four write tools** for semantic contexts, the business statements that make the graph useful to people and to AI (one turns a document into context). Five tools **manage the graph** itself: add and remove data sources and workbooks, create and update graphs, and ask Tableau's own agent a question to test its answers. Those go through the API behind the Tableau Knowledge web app, which Tableau doesn't document. Four more tools **port semantic layers** through [Apache Ossie](https://ossie.apache.org) (formerly Open Semantic Interchange, OSI), the open standard that Snowflake, dbt, Power BI, Databricks, Tableau Next and others convert to and from. And one checks **Business Preferences** files line by line against the fields the agent will actually see.
+
+### See it in action
+
+<p align="center"><img src="docs/images/demo-add-sources.gif" alt="Claude finds the 13 Superstore data sources on the site with list_sources(site_search), adds the 12 that are missing with add_sources, and confirms the ingestion completed" width="760"></p>
+<p align="center"><img src="docs/images/demo-agent-check.gif" alt="Claude asks Tableau's agent how many data sources the graph has, then checks the answer with list_sources: the agent said 11 but the graph has 13" width="760"></p>
+<p align="center"><img src="docs/images/demo-document-context.gif" alt="Claude uploads a KPI glossary file with create_semantic_context_from_document; Tableau turns each line into a graph-wide statement" width="760"></p>
+
+<sub>Replays of real tool results from a test site, with site-specific names removed. Regenerate with <code>docs/images/render_demo_gifs.py</code>.</sub>
 
 ### Why it's different
 
