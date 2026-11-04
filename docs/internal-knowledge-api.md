@@ -1,7 +1,7 @@
 # Tableau Knowledge internal API (`/knowledge/api`)
 
 Scanned 2026-11-04 from the Tableau Knowledge web app bundle (`/knowledge/assets/index-DFD3m6fD.js`,
-downloadable without login) on 10ax / biztorypulse. **Undocumented**: this is the API the web app
+downloadable without login) on a Tableau Cloud site. **Undocumented**: this is the API the web app
 calls, not the public `/api/v1/knowledge` this MCP server uses. It can change without notice.
 
 **Auth:** a PAT sign-in token in `X-Tableau-Auth` works (no browser, no cookie). Verified for every

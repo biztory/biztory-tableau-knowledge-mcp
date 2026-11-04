@@ -355,8 +355,8 @@ def test_graph_health_caps_suggestions_by_default(api):
 # ---------------------------------------------------------------- graph sources (internal API)
 
 G = "g1"
-L1 = "fe1e5ddd-ef32-4a3f-bbb7-28d2fd537522"
-L2 = "74ceb97a-d290-4b70-8ece-89b89460ed1e"
+L1 = "11111111-2222-4333-8444-555555555555"
+L2 = "66666666-7777-4888-9999-aaaaaaaaaaaa"
 SRC = [
     {"id": f"pds:c:{L1}", "name": "Sample - Superstore", "type": "PDS", "properties": {"luid": L1}},
     {"id": f"workbook:c:{L2}", "name": "Overview", "type": "WORKBOOK", "properties": {"luid": L2}},
