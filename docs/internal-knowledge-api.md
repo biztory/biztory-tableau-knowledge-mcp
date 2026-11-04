@@ -56,4 +56,10 @@ Graph-scoped calls take `?graph_id=<id>`.
 
 - `config.node_semantic_context_enabled: false` is the flag behind the public API's
   `node_semantic_context_disabled` error. A tool can read it up front instead of failing a write.
+  With it off, every route to node-level context is refused (tested 2026-11-04): internal
+  `POST semantic-context` with `target_node_id`, `PATCH` attaching a global context to a node, and
+  the document upload with `target_node_id` all return 403 `node_semantic_context_disabled`; the
+  Tableau Agent declines too ("only whole-graph business rules"). The UI hides node-level "Add" on
+  the same flag. Node-level context then comes only from Tableau itself: field/data source
+  descriptions, ingested on refresh. A node's context list also shows global contexts.
 - The UI sends an `X-XSRF-TOKEN` for cookie auth; PAT calls did not need it.
