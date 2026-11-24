@@ -25,6 +25,7 @@
 
 <p align="center">
   <a href="https://mcprush.com/to/biztory-tableau-knowledge-mcp?ref=badge"><img src="https://mcprush.com/badge/biztory-tableau-knowledge-mcp/card.svg" alt="Biztory Tableau Knowledge MCP server on mcprush"></a>
+  <a href="https://glama.ai/mcp/servers/biztory/biztory-tableau-knowledge-mcp"><img src="https://glama.ai/mcp/servers/biztory/biztory-tableau-knowledge-mcp/badges/score.svg" alt="biztory/biztory-tableau-knowledge-mcp MCP server"></a>
 </p>
 
 <p align="center">
